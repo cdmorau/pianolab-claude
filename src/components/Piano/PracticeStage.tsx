@@ -2,7 +2,8 @@ import { useLayoutEffect, useRef } from 'react';
 import { PianoKeyboard } from './PianoKeyboard';
 import { buildLayout } from './layout';
 import type { KeyDecorations } from './types';
-import { FallingNotes, type NoteGroup } from '@/components/FallingNotes/FallingNotes';
+import { FallingNotes } from '@/components/FallingNotes/FallingNotes';
+import type { PlayGroup } from '@/utils/groups';
 import { useSettings } from '@/state/settingsStore';
 
 export interface PracticeStageProps {
@@ -11,7 +12,7 @@ export interface PracticeStageProps {
   decorations?: KeyDecorations;
   onKeyDown?: (midi: number) => void;
   /** Falling-notes groups; when provided, the lane is shown above the keys. */
-  groups?: NoteGroup[];
+  groups?: PlayGroup[];
   currentIndex?: number;
   /** MIDI note to keep centered when the keyboard is wider than the viewport. */
   focusMidi?: number;

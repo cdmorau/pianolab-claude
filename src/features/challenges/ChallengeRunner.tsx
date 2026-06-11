@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { PracticeStage } from '@/components/Piano/PracticeStage';
 import { PianoControls } from '@/components/Piano/PianoControls';
 import type { KeyDecorations } from '@/components/Piano/types';
-import type { NoteGroup } from '@/components/FallingNotes/FallingNotes';
+import { evenGroups } from '@/utils/groups';
 import { Staff, type StaffItem } from '@/components/Notation/Staff';
 import { displayRange } from '@/data/pianoSizes';
 import { FeedbackBanner } from '@/components/Feedback/FeedbackBanner';
@@ -243,8 +243,10 @@ export function ChallengeRunner({ challenge, onExit }: { challenge: Challenge; o
         ? [step.targets[0]]
         : [];
 
-  const melodyGroups: NoteGroup[] =
-    challenge.kind === 'melody' ? state.steps.map((s) => ({ midis: s.targets, fingers: s.fingers })) : [];
+  const melodyGroups =
+    challenge.kind === 'melody'
+      ? evenGroups(state.steps.map((s) => ({ midis: s.targets, fingers: s.fingers })))
+      : [];
 
   return (
     <div className="flex flex-col gap-4">
