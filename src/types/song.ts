@@ -12,6 +12,8 @@ export interface NoteEvent {
   hand: Hand;
   /** Suggested finger, when known. */
   finger?: Finger;
+  /** Note loudness 0..1 (dynamics). Defaults applied at playback if absent. */
+  velocity?: number;
 }
 
 /** License / provenance of a piece, used for badges and attribution. */

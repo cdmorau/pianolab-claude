@@ -152,7 +152,7 @@ export function playNoteEvents(
           midiToFreq(ev.midi),
           Math.max(0.08, ev.durationBeats * beatSeconds * 0.95),
           time,
-          0.8,
+          ev.velocity ?? 0.8,
         );
         if (onNote) Tone.getDraw().schedule(() => onNote(ev), time);
       }, when);

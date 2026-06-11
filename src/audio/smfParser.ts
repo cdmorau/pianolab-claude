@@ -10,6 +10,8 @@ export interface ParsedNote {
   startTick: number;
   /** Duration in ticks. */
   durationTicks: number;
+  /** Note-on velocity, 0..1. */
+  velocity: number;
 }
 
 export interface ParsedMidi {
@@ -76,8 +78,8 @@ export function parseSmf(buffer: ArrayBuffer): ParsedMidi {
     const trackEnd = r.pos + trackLen;
     let absTick = 0;
     let runningStatus = 0;
-    // Pending note-ons keyed by note number for this track.
-    const pending = new Map<number, number>();
+    // Pending note-ons keyed by note number: { startTick, velocity }.
+    const pending = new Map<number, { tick: number; vel: number }>();
 
     while (r.pos < trackEnd) {
       absTick += r.varInt();
@@ -111,11 +113,16 @@ export function parseSmf(buffer: ArrayBuffer): ParsedMidi {
         const note = r.u8();
         const velocity = r.u8();
         if (type === 0x90 && velocity > 0) {
-          pending.set(note, absTick);
+          pending.set(note, { tick: absTick, vel: velocity / 127 });
         } else {
           const start = pending.get(note);
           if (start !== undefined) {
-            notes.push({ midi: note, startTick: start, durationTicks: Math.max(1, absTick - start) });
+            notes.push({
+              midi: note,
+              startTick: start.tick,
+              durationTicks: Math.max(1, absTick - start.tick),
+              velocity: start.vel,
+            });
             pending.delete(note);
           }
         }

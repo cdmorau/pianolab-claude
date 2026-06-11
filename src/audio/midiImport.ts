@@ -17,6 +17,7 @@ export async function songFromMidiFile(file: File): Promise<Song> {
     durationBeats: Math.max(0.1, n.durationTicks / ppq),
     // Heuristic: notes below middle C go to the left hand.
     hand: n.midi < 60 ? 'L' : 'R',
+    velocity: n.velocity,
   }));
 
   const title = file.name.replace(/\.midi?$/i, '') || 'MIDI';
