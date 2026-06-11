@@ -5,6 +5,9 @@ import { fileURLToPath, URL } from 'node:url';
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Relative base so the app works both locally and when served from a
+  // GitHub Pages subpath (https://<user>.github.io/pianolab-claude/).
+  base: './',
   plugins: [react()],
   resolve: {
     alias: {
