@@ -1,0 +1,60 @@
+src/data/songs/furElise.ts
+  s_7b8b3ad99dc88e::t_d6dfea7fcce96b 2,6,10,14,17-38
+src/data/songs/twinkle.ts
+  s_7b8b3ad99dc88e::t_3d2a00e6427a6e 2,4,14-36
+src/data/songs/_util.ts
+  s_7b8b3ad99dc88e::t_9b66f768bbfd91 20-37
+src/i18n/locales/es.json
+  s_7b8b3ad99dc88e::t_18556eeac478a6 90
+src/data/songs/her.ts
+  s_7b8b3ad99dc88e::t_651fdd5cdbd63d 2,6-7,19-20,22-46
+src/features/challenges/ChallengeRunner.tsx
+  s_7b8b3ad99dc88e::t_5beb493d914a3e 203-204
+  s_7b8b3ad99dc88e::t_310755b7e7df23 85
+  s_7b8b3ad99dc88e::t_bcaeb4ddff3348 125
+  s_7b8b3ad99dc88e::t_692d5b746d5ee7 240-244
+src/data/songs/odeToJoy.ts
+  s_7b8b3ad99dc88e::t_66cc666ef83fea 2,6,13-14,17-37
+src/state/settingsStore.ts
+  s_7b8b3ad99dc88e::t_6d16bafc3d9256 44
+src/components/Piano/PianoKeyboard.tsx
+  s_7b8b3ad99dc88e::t_3e34497f23a2f2 90
+  s_7b8b3ad99dc88e::t_fda3724563184c 47-48
+  s_7b8b3ad99dc88e::t_3581b57903f719 6
+  s_7b8b3ad99dc88e::t_9098bb63c41192 116,122-123,125
+  s_7b8b3ad99dc88e::t_8200379330edbe 78
+README.md
+  s_7b8b3ad99dc88e::t_5b337d805a6804 18
+  s_7b8b3ad99dc88e::t_a0f93d745da4f1 82
+src/data/pianoSizes.ts
+  s_7b8b3ad99dc88e::t_aecff04b46520f 19
+src/i18n/locales/en.json
+  s_7b8b3ad99dc88e::t_7188ff10ea17ee 90
+src/data/challenges.ts
+  s_7b8b3ad99dc88e::t_c35fac85ba6e9a 6,15-16
+  s_7b8b3ad99dc88e::t_365c15f9c1a45a 64-101
+src/data/songs/chopinNocturne.ts
+  s_7b8b3ad99dc88e::t_5f720cef137bb2 2,6-7,15-16,19-20,22-44
+src/data/songs/interstellar.ts
+  s_7b8b3ad99dc88e::t_32cf2512f61b5e 2,6-7,19-20,22-46
+src/data/lessons.ts
+  s_7b8b3ad99dc88e::t_0f2d7ddc97ba35 47-48,54-55,61-62,70-71,74-81,93-94,97-100,102,119-251,319-418,450,467,477-620
+src/features/theory/LessonView.tsx
+  s_7b8b3ad99dc88e::t_9a1017979656ca 9,16-20,42-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "0db62b19ca9e7ede2d4ee9462132cf9d4c66b05e",
+  "prompts": {},
+  "sessions": {
+    "s_7b8b3ad99dc88e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f29df47-25c3-4d8a-a655-5abf8b4aab11",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Cristhian David Mora Uribe <63613016+cdmorau@users.noreply.github.com>"
+    }
+  }
+}
