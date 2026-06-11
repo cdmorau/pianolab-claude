@@ -16,7 +16,7 @@ export const PIANO_SIZES: PianoSize[] = [
   { keys: 25, startMidi: 48, endMidi: 72, range: 'C3–C5' },
 ];
 
-export const DEFAULT_PIANO_KEYS = 49;
+export const DEFAULT_PIANO_KEYS = 88;
 
 export function getPianoSize(keys: number): PianoSize {
   return PIANO_SIZES.find((s) => s.keys === keys) ?? PIANO_SIZES[3];

@@ -6,14 +6,18 @@ import { Staff, type StaffItem } from '@/components/Notation/Staff';
 import { playChord, playSequence } from '@/audio/engine';
 import { useSettings } from '@/state/settingsStore';
 import { useProgress } from '@/state/progressStore';
+import { displayRange } from '@/data/pianoSizes';
 import type { Lesson, LessonBlock } from '@/data/lessons';
 import type { Finger } from '@/types/music';
 
 function DemoBlock({ block }: { block: Extract<LessonBlock, { type: 'demo' }> }) {
   const { t } = useTranslation();
   const language = useSettings((s) => s.language);
-  const lo = Math.max(48, Math.min(...block.notes) - 2);
-  const hi = Math.min(84, Math.max(...block.notes) + 2);
+  const pianoKeys = useSettings((s) => s.pianoKeys);
+  const reqLo = Math.min(...block.notes);
+  const reqHi = Math.max(...block.notes);
+  const range = displayRange(reqLo, reqHi, pianoKeys);
+  const focusMidi = Math.round((reqLo + reqHi) / 2);
 
   const decorations: KeyDecorations = {};
   block.notes.forEach((n, i) => {
@@ -35,8 +39,9 @@ function DemoBlock({ block }: { block: Extract<LessonBlock, { type: 'demo' }> })
         </div>
       )}
       <PianoKeyboard
-        startMidi={lo}
-        endMidi={hi}
+        startMidi={range.start}
+        endMidi={range.end}
+        focusMidi={focusMidi}
         decorations={decorations}
         forceShowFingers={!!block.fingers}
         sound

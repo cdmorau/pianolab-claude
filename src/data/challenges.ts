@@ -3,7 +3,7 @@ import { C_MAJOR, scaleNotes } from './scales';
 import { TRIADS } from './chords';
 import { isBlackKey } from '@/audio/notes';
 
-export type ChallengeKind = 'note' | 'scale' | 'ear' | 'chord' | 'melody';
+export type ChallengeKind = 'note' | 'scale' | 'ear' | 'chord' | 'melody' | 'octave';
 
 export interface ChallengeStep {
   mode: 'single' | 'sequence' | 'chord';
@@ -12,6 +12,8 @@ export interface ChallengeStep {
   fingers?: (number | undefined)[];
   /** Hide the target (ear training): the app plays it, the user reproduces it. */
   hidden?: boolean;
+  /** Accept the right pitch class in ANY octave (for octave training). */
+  octaveTolerant?: boolean;
   /** Short label, e.g. a chord symbol. */
   label?: string;
 }
@@ -56,6 +58,45 @@ export const CHALLENGES: Challenge[] = [
       Array.from({ length: 5 }, () => ({
         mode: 'single' as const,
         targets: [randomWhiteNote(60, 71)],
+      })),
+  },
+  {
+    id: 'find-notes-wide',
+    emoji: '🗺️',
+    kind: 'note',
+    difficulty: 2,
+    xp: 20,
+    title: { es: 'Encuentra la nota (teclado completo)', en: 'Find the note (full keyboard)' },
+    description: {
+      es: 'Como el anterior, pero las notas pueden estar en cualquier octava del teclado. 6 rondas.',
+      en: 'Like before, but notes can be anywhere across the keyboard. 6 rounds.',
+    },
+    rangeStart: 48,
+    rangeEnd: 84,
+    build: () =>
+      Array.from({ length: 6 }, () => ({
+        mode: 'single' as const,
+        targets: [randomWhiteNote(48, 83)],
+      })),
+  },
+  {
+    id: 'octaves',
+    emoji: '🪜',
+    kind: 'octave',
+    difficulty: 2,
+    xp: 20,
+    title: { es: 'Octavas', en: 'Octaves' },
+    description: {
+      es: 'Te decimos una nota y la tocas en CUALQUIER octava. Ideal para conocer todo el teclado.',
+      en: 'We name a note and you play it in ANY octave. Great for learning the whole keyboard.',
+    },
+    rangeStart: 36,
+    rangeEnd: 84,
+    build: () =>
+      Array.from({ length: 5 }, () => ({
+        mode: 'single' as const,
+        targets: [randomWhiteNote(48, 71)],
+        octaveTolerant: true,
       })),
   },
   {

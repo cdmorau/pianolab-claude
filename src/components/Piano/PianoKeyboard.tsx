@@ -3,7 +3,7 @@ import { isBlackKey, midiToNoteName, pitchClass } from '@/audio/notes';
 import { playNote } from '@/audio/engine';
 import { useSettings } from '@/state/settingsStore';
 import type { KeyDecoration, KeyDecorations } from './types';
-import { WHITE_W, WHITE_H, BLACK_W, BLACK_H } from './layout';
+import { WHITE_W, WHITE_H, BLACK_W, BLACK_H, buildLayout } from './layout';
 
 const TOP = 10; // bezel / felt strip height above the keys
 
@@ -44,6 +44,8 @@ export interface PianoKeyboardProps {
   forceShowFingers?: boolean;
   /** Wrap in its own horizontal scroll container. Set false to share a parent's. */
   scroll?: boolean;
+  /** MIDI note to keep centered when the keyboard overflows its container. */
+  focusMidi?: number;
   className?: string;
 }
 
@@ -73,6 +75,7 @@ export function PianoKeyboard({
   pcOctaveStart = 60,
   forceShowFingers,
   scroll = true,
+  focusMidi = 60,
   className,
 }: PianoKeyboardProps) {
   const gid = useId().replace(/[:]/g, '');
@@ -84,7 +87,7 @@ export function PianoKeyboard({
   const pressedRef = useRef<Set<number>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { whiteKeys, blackKeys, width, centerXC4 } = useMemo(() => {
+  const { whiteKeys, blackKeys, width } = useMemo(() => {
     const whites: PositionedKey[] = [];
     const whiteIndexByMidi = new Map<number, number>();
     let wi = 0;
@@ -103,24 +106,23 @@ export function PianoKeyboard({
         blacks.push({ midi: m, x: (leftWhiteIndex + 1) * WHITE_W - BLACK_W / 2 });
       }
     }
-    const c4Index = whiteIndexByMidi.get(60);
     return {
       whiteKeys: whites,
       blackKeys: blacks,
       width: whites.length * WHITE_W,
-      centerXC4: c4Index !== undefined ? c4Index * WHITE_W + WHITE_W / 2 : whites.length * WHITE_W * 0.4,
     };
   }, [startMidi, endMidi]);
 
-  // Center the scroll on middle C for wide keyboards.
+  // Center the scroll on the focus note for wide keyboards.
   useLayoutEffect(() => {
     if (!scroll) return;
     const el = scrollRef.current;
     if (!el) return;
     if (width > el.clientWidth) {
-      el.scrollLeft = Math.max(0, centerXC4 - el.clientWidth / 2);
+      const cx = buildLayout(startMidi, endMidi).centerX(focusMidi) ?? width / 2;
+      el.scrollLeft = Math.max(0, cx - el.clientWidth / 2);
     }
-  }, [width, centerXC4, scroll]);
+  }, [width, scroll, focusMidi, startMidi, endMidi]);
 
   const press = (midi: number) => {
     if (pressedRef.current.has(midi)) return;

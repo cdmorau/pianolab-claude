@@ -17,3 +17,21 @@ export function melody(items: MelodyItem[], hand: Hand = 'R'): NoteEvent[] {
     return ev;
   });
 }
+
+/** A harmony entry placed at an absolute beat: [startBeat, midis, dur]. */
+export type HarmonyItem = [startBeat: number, midis: number[], dur: number];
+
+/**
+ * Build an accompaniment line (chords or bass) at absolute beat positions.
+ * Each chord becomes several NoteEvents that start together — ideal for a
+ * left-hand part that lines up with a right-hand `melody()`.
+ */
+export function harmony(items: HarmonyItem[], hand: Hand = 'L'): NoteEvent[] {
+  const out: NoteEvent[] = [];
+  for (const [startBeat, midis, dur] of items) {
+    for (const midi of midis) {
+      out.push({ midi, startBeat, durationBeats: dur, hand });
+    }
+  }
+  return out;
+}

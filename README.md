@@ -15,7 +15,7 @@ PianoLab is an **open-source**, **100% local** web app (your audio never leaves 
 - 🖐️ **Digitación guiada** — indicadores de dedo 1–5 sobre las teclas y en las partituras.
 - 🎯 **Retos progresivos** — encuentra la nota, escala de Do mayor, entrenamiento auditivo, acordes y melodías, con feedback, pistas y reinicio.
 - ⭐ **Notas que caen** — práctica estilo Synthesia con *modo espera* (Canvas).
-- 🎼 **Repertorio** — piezas de dominio público (incl. **Chopin, Nocturne Op. 9 No. 2**) y arreglos simplificados, con tempo ajustable, bucle y selección de mano. Además puedes **importar tus propios archivos MIDI**.
+- 🎼 **Repertorio** — piezas de dominio público (incl. **Chopin, Nocturne Op. 9 No. 2**, Beethoven) y arreglos **a dos manos**, con tempo ajustable, bucle y selección de mano. Además puedes **importar tus propios archivos MIDI** (la vía recomendada para partituras completas exactas).
 - 🎮 **Gamificación** — XP, niveles, estrellas y racha diaria (guardado local).
 - 🌗 Tema claro/oscuro · 🌍 Español / English · 🎹 Entrada por clic, teclado del PC, micrófono o **teclado MIDI** (Web MIDI).
 
@@ -79,7 +79,7 @@ The **source code** is released under the [MIT](./LICENSE) license.
 Sobre el **repertorio** / About the **repertoire**:
 
 - Las piezas clásicas (p. ej. **Chopin – Nocturne Op. 9 No. 2**, Beethoven) son de **dominio público**.
-- Los arreglos simplificados de obras modernas (**Interstellar – Main Theme**, Hans Zimmer; **Her – “Photograph”**, Arcade Fire) se incluyen **solo con fines personales/educativos**; los derechos pertenecen a sus respectivos titulares.
+- Los arreglos a dos manos de obras modernas (**Interstellar – Main Theme**, Hans Zimmer; **Her – “Photograph”**, Arcade Fire) se incluyen **solo con fines personales/educativos**; los derechos pertenecen a sus respectivos titulares. Son arreglos hechos a mano (no la partitura oficial completa); para una versión exacta, usa el importador de MIDI.
 
 Los samples de piano son del [Salamander Grand Piano](https://archive.org/details/SalamanderGrandPianoV3) (CC-BY 3.0), servidos vía el CDN de Tone.js.
 

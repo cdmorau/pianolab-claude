@@ -82,7 +82,7 @@ function reducer(state: State, action: Action): State {
       if (state.finished) return state;
       const step = state.steps[state.stepIndex];
       if (!step) return state;
-      const octTol = action.fromMic;
+      const octTol = action.fromMic || !!step.octaveTolerant;
 
       if (step.mode === 'chord') {
         const matched = step.targets.find((t) => notesMatch(action.midi, t, octTol));
@@ -122,7 +122,7 @@ function buildDecorations(state: State): KeyDecorations {
   if (state.finished) return deco;
   const step = state.steps[state.stepIndex];
   if (!step) return deco;
-  const showTargets = !step.hidden || state.revealed;
+  const showTargets = (!step.hidden && !step.octaveTolerant) || state.revealed;
 
   if (step.mode === 'chord') {
     step.targets.forEach((t, i) => {
@@ -200,6 +200,8 @@ export function ChallengeRunner({ challenge, onExit }: { challenge: Challenge; o
     switch (challenge.kind) {
       case 'note':
         return `${t('challenges.playTheNote')}: ${midiToNoteName(step.targets[0], { language })}`;
+      case 'octave':
+        return `${t('challenges.playAnyOctave')}: ${midiToNoteName(step.targets[0], { language, withOctave: false })}`;
       case 'ear':
         return t('challenges.playWhatYouHear');
       case 'scale':
@@ -235,7 +237,11 @@ export function ChallengeRunner({ challenge, onExit }: { challenge: Challenge; o
   }
 
   const staffItems: StaffItem[] =
-    challenge.kind === 'chord' && step ? [step.targets] : step && !step.hidden ? [step.targets[0]] : [];
+    challenge.kind === 'chord' && step
+      ? [step.targets]
+      : step && !step.hidden && challenge.kind !== 'octave'
+        ? [step.targets[0]]
+        : [];
 
   const melodyGroups: NoteGroup[] =
     challenge.kind === 'melody' ? state.steps.map((s) => ({ midis: s.targets, fingers: s.fingers })) : [];

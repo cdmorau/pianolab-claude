@@ -41,7 +41,7 @@ export const useSettings = create<SettingsState>()(
       volume: 0.8,
       showFingers: true,
       showNoteNames: true,
-      pianoKeys: 49,
+      pianoKeys: 88,
       setLanguage: (language) => {
         set({ language });
         void i18n.changeLanguage(language);
