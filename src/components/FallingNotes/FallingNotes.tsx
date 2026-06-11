@@ -15,6 +15,8 @@ export interface FallingNotesProps {
   endMidi: number;
   showFingers?: boolean;
   height?: number;
+  /** Wrap in its own horizontal scroll container. Set false to share a parent's. */
+  scroll?: boolean;
   className?: string;
 }
 
@@ -28,6 +30,7 @@ export function FallingNotes({
   endMidi,
   showFingers = true,
   height = 260,
+  scroll = true,
   className,
 }: FallingNotesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -118,15 +121,11 @@ export function FallingNotes({
     return () => cancelAnimationFrame(raf);
   }, [height]);
 
-  return (
-    <div className={`overflow-x-auto ${className ?? ''}`}>
-      <canvas
-        ref={canvasRef}
-        style={{ display: 'block', width: layoutWidth, height }}
-        aria-hidden
-      />
-    </div>
+  const canvas = (
+    <canvas ref={canvasRef} style={{ display: 'block', width: layoutWidth, height }} aria-hidden />
   );
+  if (!scroll) return canvas;
+  return <div className={`overflow-x-auto ${className ?? ''}`}>{canvas}</div>;
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {

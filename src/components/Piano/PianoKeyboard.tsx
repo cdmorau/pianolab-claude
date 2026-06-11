@@ -42,6 +42,8 @@ export interface PianoKeyboardProps {
   enablePcKeyboard?: boolean;
   pcOctaveStart?: number;
   forceShowFingers?: boolean;
+  /** Wrap in its own horizontal scroll container. Set false to share a parent's. */
+  scroll?: boolean;
   className?: string;
 }
 
@@ -70,6 +72,7 @@ export function PianoKeyboard({
   enablePcKeyboard = false,
   pcOctaveStart = 60,
   forceShowFingers,
+  scroll = true,
   className,
 }: PianoKeyboardProps) {
   const gid = useId().replace(/[:]/g, '');
@@ -111,12 +114,13 @@ export function PianoKeyboard({
 
   // Center the scroll on middle C for wide keyboards.
   useLayoutEffect(() => {
+    if (!scroll) return;
     const el = scrollRef.current;
     if (!el) return;
     if (width > el.clientWidth) {
       el.scrollLeft = Math.max(0, centerXC4 - el.clientWidth / 2);
     }
-  }, [width, centerXC4]);
+  }, [width, centerXC4, scroll]);
 
   const press = (midi: number) => {
     if (pressedRef.current.has(midi)) return;
@@ -189,20 +193,15 @@ export function PianoKeyboard({
     );
   };
 
-  return (
-    <div
-      ref={scrollRef}
-      className={`overflow-x-auto rounded-xl ${className ?? ''}`}
-      style={{ userSelect: 'none', touchAction: 'pan-x' }}
+  const svg = (
+    <svg
+      viewBox={`0 0 ${width} ${totalH}`}
+      width={width}
+      height={totalH}
+      style={{ display: 'block' }}
+      role="group"
+      aria-label="piano keyboard"
     >
-      <svg
-        viewBox={`0 0 ${width} ${totalH}`}
-        width={width}
-        height={totalH}
-        style={{ display: 'block' }}
-        role="group"
-        aria-label="piano keyboard"
-      >
         <defs>
           <linearGradient id={wId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="#ffffff" />
@@ -292,7 +291,24 @@ export function PianoKeyboard({
             </g>
           );
         })}
-      </svg>
+    </svg>
+  );
+
+  if (!scroll) {
+    return (
+      <div className={className} style={{ userSelect: 'none' }}>
+        {svg}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={scrollRef}
+      className={`overflow-x-auto rounded-xl ${className ?? ''}`}
+      style={{ userSelect: 'none', touchAction: 'pan-x' }}
+    >
+      {svg}
     </div>
   );
 }

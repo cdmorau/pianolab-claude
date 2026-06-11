@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PianoKeyboard } from '@/components/Piano/PianoKeyboard';
+import { PracticeStage } from '@/components/Piano/PracticeStage';
+import { PianoControls } from '@/components/Piano/PianoControls';
 import type { KeyDecorations } from '@/components/Piano/types';
-import { FallingNotes } from '@/components/FallingNotes/FallingNotes';
+import { displayRange } from '@/data/pianoSizes';
 import { MicMeter } from '@/components/MicMeter/MicMeter';
 import { useMicNote } from '@/components/MicMeter/useMic';
 import { playNoteEvents } from '@/audio/engine';
@@ -68,12 +69,15 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
   const [listenIndex, setListenIndex] = useState(0);
   const listenCancel = useRef<(() => void) | null>(null);
 
+  const pianoKeys = useSettings((s) => s.pianoKeys);
   const groups = useMemo(() => groupByBeat(song.notes, hand), [song, hand]);
   const handNotes = useMemo(
     () => (hand === 'both' ? song.notes : song.notes.filter((n) => n.hand === hand)),
     [song, hand],
   );
-  const range = useMemo(() => songRange(song), [song]);
+  const reqRange = useMemo(() => songRange(song), [song]);
+  const range = useMemo(() => displayRange(reqRange.start, reqRange.end, pianoKeys), [reqRange, pianoKeys]);
+  const focusMidi = Math.round((reqRange.start + reqRange.end) / 2);
 
   const [state, dispatch] = useReducer(reducerP, groups, initP);
 
@@ -216,30 +220,24 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
           </label>
         </div>
 
-        {groups.length === 0 ? (
-          <p className="py-8 text-center text-slate-500">—</p>
-        ) : (
-          <FallingNotes
-            groups={groups}
-            currentIndex={currentIndex}
-            startMidi={range.start}
-            endMidi={range.end}
-            height={300}
-            className="rounded-xl bg-slate-100 dark:bg-slate-900/60"
-          />
-        )}
-
         <p className="text-xs text-slate-500">
           {state.finished ? `🎉 ${t('common.completed')}` : t('repertoire.waitModeDesc')}
         </p>
       </div>
 
-      <PianoKeyboard
-        startMidi={range.start}
-        endMidi={range.end}
+      <div className="flex justify-end">
+        <PianoControls compact />
+      </div>
+
+      <PracticeStage
+        start={range.start}
+        end={range.end}
+        focusMidi={focusMidi}
         decorations={decorations}
-        enablePcKeyboard
+        groups={groups}
+        currentIndex={currentIndex}
         forceShowFingers
+        fallingHeight={300}
         onKeyDown={(midi) => dispatch({ type: 'input', midi, fromMic: false })}
       />
 

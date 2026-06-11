@@ -21,3 +21,19 @@ export const DEFAULT_PIANO_KEYS = 49;
 export function getPianoSize(keys: number): PianoSize {
   return PIANO_SIZES.find((s) => s.keys === keys) ?? PIANO_SIZES[3];
 }
+
+/**
+ * Range to display for a practice/song: the chosen keyboard size, expanded if
+ * needed so the required notes always fit.
+ */
+export function displayRange(
+  requiredStart: number,
+  requiredEnd: number,
+  keys: number,
+): { start: number; end: number } {
+  const size = getPianoSize(keys);
+  return {
+    start: Math.min(size.startMidi, requiredStart),
+    end: Math.max(size.endMidi, requiredEnd),
+  };
+}

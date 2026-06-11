@@ -3,7 +3,7 @@ import { useSettings } from '@/state/settingsStore';
 import { PIANO_SIZES } from '@/data/pianoSizes';
 
 /** Toolbar to pick keyboard size and toggle note-name / finger overlays. */
-export function PianoControls() {
+export function PianoControls({ compact = false }: { compact?: boolean }) {
   const { t } = useTranslation();
   const pianoKeys = useSettings((s) => s.pianoKeys);
   const setPianoKeys = useSettings((s) => s.setPianoKeys);
@@ -35,10 +35,12 @@ export function PianoControls() {
         {t('piano.showNames')}
       </label>
 
-      <label className="flex items-center gap-1.5">
-        <input type="checkbox" checked={showFingers} onChange={(e) => setShowFingers(e.target.checked)} />
-        {t('piano.showFingers')}
-      </label>
+      {!compact && (
+        <label className="flex items-center gap-1.5">
+          <input type="checkbox" checked={showFingers} onChange={(e) => setShowFingers(e.target.checked)} />
+          {t('piano.showFingers')}
+        </label>
+      )}
     </div>
   );
 }

@@ -1,9 +1,11 @@
 import { useEffect, useReducer } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PianoKeyboard } from '@/components/Piano/PianoKeyboard';
+import { PracticeStage } from '@/components/Piano/PracticeStage';
+import { PianoControls } from '@/components/Piano/PianoControls';
 import type { KeyDecorations } from '@/components/Piano/types';
-import { FallingNotes, type NoteGroup } from '@/components/FallingNotes/FallingNotes';
+import type { NoteGroup } from '@/components/FallingNotes/FallingNotes';
 import { Staff, type StaffItem } from '@/components/Notation/Staff';
+import { displayRange } from '@/data/pianoSizes';
 import { FeedbackBanner } from '@/components/Feedback/FeedbackBanner';
 import { MicMeter } from '@/components/MicMeter/MicMeter';
 import { useMicNote } from '@/components/MicMeter/useMic';
@@ -149,8 +151,12 @@ function buildDecorations(state: State): KeyDecorations {
 export function ChallengeRunner({ challenge, onExit }: { challenge: Challenge; onExit: () => void }) {
   const { t } = useTranslation();
   const language = useSettings((s) => s.language);
+  const pianoKeys = useSettings((s) => s.pianoKeys);
   const completeChallenge = useProgress((s) => s.completeChallenge);
   const [state, dispatch] = useReducer(reducer, challenge.build(), init);
+
+  const range = displayRange(challenge.rangeStart, challenge.rangeEnd, pianoKeys);
+  const focusMidi = Math.round((challenge.rangeStart + challenge.rangeEnd) / 2);
 
   const step = state.steps[state.stepIndex];
 
@@ -260,16 +266,6 @@ export function ChallengeRunner({ challenge, onExit }: { challenge: Challenge; o
           </button>
         )}
 
-        {melodyGroups.length > 0 && (
-          <FallingNotes
-            groups={melodyGroups}
-            currentIndex={state.stepIndex}
-            startMidi={challenge.rangeStart}
-            endMidi={challenge.rangeEnd}
-            className="rounded-xl bg-slate-100 dark:bg-slate-900/60"
-          />
-        )}
-
         {staffItems.length > 0 && (
           <div className="flex justify-center">
             <Staff items={staffItems} fingers={step?.fingers} />
@@ -279,11 +275,17 @@ export function ChallengeRunner({ challenge, onExit }: { challenge: Challenge; o
         <FeedbackBanner status={state.feedback} message={state.revealed ? t('challenges.tooManyTries') : undefined} />
       </div>
 
-      <PianoKeyboard
-        startMidi={challenge.rangeStart}
-        endMidi={challenge.rangeEnd}
+      <div className="flex justify-end">
+        <PianoControls compact />
+      </div>
+
+      <PracticeStage
+        start={range.start}
+        end={range.end}
+        focusMidi={focusMidi}
         decorations={decorations}
-        enablePcKeyboard
+        groups={melodyGroups.length > 0 ? melodyGroups : undefined}
+        currentIndex={state.stepIndex}
         forceShowFingers
         onKeyDown={(midi) => dispatch({ type: 'input', midi, fromMic: false })}
       />
