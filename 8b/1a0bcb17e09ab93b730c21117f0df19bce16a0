@@ -1,0 +1,31 @@
+src/components/FallingNotes/FallingNotes.tsx
+  s_7b8b3ad99dc88e::t_c311f887e9d7d3 8,10-12,37,46,52-53,71-95,105-106,129,133,142-143,150,155-157,162-163,167,170,197
+  s_7b8b3ad99dc88e::t_90164013c85a2d 47
+src/audio/engine.ts
+  s_7b8b3ad99dc88e::t_c9fd1bf9a0dca3 129-130,139-140,142-147,149-158,160,162-166
+  s_7b8b3ad99dc88e::t_88c5fd6e8d71ef 117,120-121,123
+src/features/repertoire/SongPlayer.tsx
+  s_7b8b3ad99dc88e::t_8c6f6dc1c2b7c2 110-111,118,122-131,133-134,137
+  s_7b8b3ad99dc88e::t_a767efaf4b7a86 69,71
+  s_7b8b3ad99dc88e::t_cd5ddc9089e061 245
+src/components/Piano/PracticeStage.tsx
+  s_7b8b3ad99dc88e::t_3102a4554bf462 64
+  s_7b8b3ad99dc88e::t_11c492b49721eb 36
+  s_7b8b3ad99dc88e::t_e068f1b859e092 17-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "8b1a0bcb17e09ab93b730c21117f0df19bce16a0",
+  "prompts": {},
+  "sessions": {
+    "s_7b8b3ad99dc88e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f29df47-25c3-4d8a-a655-5abf8b4aab11",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Cristhian David Mora Uribe <63613016+cdmorau@users.noreply.github.com>"
+    }
+  }
+}
