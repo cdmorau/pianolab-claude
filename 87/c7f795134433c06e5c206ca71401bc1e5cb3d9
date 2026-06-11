@@ -1,0 +1,39 @@
+src/components/FallingNotes/FallingNotes.tsx
+  s_7b8b3ad99dc88e::t_746348fb171310 37
+  s_7b8b3ad99dc88e::t_055dc05affa52a 1
+  s_7b8b3ad99dc88e::t_8c8cd31c25cc91 122-128
+src/components/Piano/PianoControls.tsx
+  s_7b8b3ad99dc88e::t_30a99ea0981b95 1-44
+src/data/pianoSizes.ts
+  s_7b8b3ad99dc88e::t_200373d15cc4f7 1-23
+src/components/Piano/PianoKeyboard.tsx
+  s_7b8b3ad99dc88e::t_f76ae191a61d7e 1,8-9,12-24,48,52-60,75,82,84-85,95,103-109,112-120,158-164,166-170,193-197,199-202,206-233,237,240-243,256,258-260,263,266,271,276-279,289-291
+src/i18n/locales/en.json
+  s_7b8b3ad99dc88e::t_9144ef9233d965 140-144
+src/i18n/locales/es.json
+  s_7b8b3ad99dc88e::t_93dd1cbda37edc 140-144
+src/state/settingsStore.ts
+  s_7b8b3ad99dc88e::t_af50138488532f 64
+  s_7b8b3ad99dc88e::t_63e157e495e251 44
+  s_7b8b3ad99dc88e::t_52e9260e3b4315 14-15,23
+src/features/home/HomePage.tsx
+  s_7b8b3ad99dc88e::t_53b4acba95070b 20-21
+  s_7b8b3ad99dc88e::t_58a9494cab4175 3,5-6
+  s_7b8b3ad99dc88e::t_f9604c7b582ab1 41-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "87c7f795134433c06e5c206ca71401bc1e5cb3d9",
+  "prompts": {},
+  "sessions": {
+    "s_7b8b3ad99dc88e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f29df47-25c3-4d8a-a655-5abf8b4aab11",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Cristhian David Mora Uribe <63613016+cdmorau@users.noreply.github.com>"
+    }
+  }
+}
