@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { buildLayout, WHITE_W, BLACK_W } from '@/components/Piano/layout';
 import { isBlackKey } from '@/audio/notes';
 
@@ -34,6 +34,7 @@ export function FallingNotes({
   const animScroll = useRef(0);
   const state = useRef({ groups, currentIndex, startMidi, endMidi, showFingers });
   state.current = { groups, currentIndex, startMidi, endMidi, showFingers };
+  const layoutWidth = useMemo(() => buildLayout(startMidi, endMidi).width, [startMidi, endMidi]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -118,12 +119,13 @@ export function FallingNotes({
   }, [height]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className={className}
-      style={{ display: 'block', width: '100%', height }}
-      aria-hidden
-    />
+    <div className={`overflow-x-auto ${className ?? ''}`}>
+      <canvas
+        ref={canvasRef}
+        style={{ display: 'block', width: layoutWidth, height }}
+        aria-hidden
+      />
+    </div>
   );
 }
 

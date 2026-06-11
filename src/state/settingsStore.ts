@@ -11,6 +11,8 @@ interface SettingsState {
   volume: number; // 0..1
   showFingers: boolean;
   showNoteNames: boolean;
+  /** Number of keys for the free-play piano (88, 76, 61, 49, 37, 25). */
+  pianoKeys: number;
   setLanguage: (lang: Language) => void;
   toggleLanguage: () => void;
   setTheme: (theme: Theme) => void;
@@ -18,6 +20,7 @@ interface SettingsState {
   setVolume: (volume: number) => void;
   setShowFingers: (show: boolean) => void;
   setShowNoteNames: (show: boolean) => void;
+  setPianoKeys: (keys: number) => void;
 }
 
 /** Apply side-effects of settings to the document / libraries. */
@@ -38,6 +41,7 @@ export const useSettings = create<SettingsState>()(
       volume: 0.8,
       showFingers: true,
       showNoteNames: true,
+      pianoKeys: 49,
       setLanguage: (language) => {
         set({ language });
         void i18n.changeLanguage(language);
@@ -57,6 +61,7 @@ export const useSettings = create<SettingsState>()(
       },
       setShowFingers: (showFingers) => set({ showFingers }),
       setShowNoteNames: (showNoteNames) => set({ showNoteNames }),
+      setPianoKeys: (pianoKeys) => set({ pianoKeys }),
     }),
     {
       name: 'pianolab-settings',

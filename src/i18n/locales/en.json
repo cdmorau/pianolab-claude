@@ -137,7 +137,11 @@
     "midiConnected": "MIDI connected",
     "midiNone": "No MIDI device",
     "showFingers": "Show fingers",
-    "showNames": "Show note names"
+    "showNames": "Show note names",
+    "size": "Size",
+    "keys": "keys",
+    "full": "full piano",
+    "freePlay": "Free play"
   },
   "mic": {
     "enable": "Enable microphone",
