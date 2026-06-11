@@ -114,20 +114,20 @@ export function playChord(midis: number[], duration = 1.2, velocity = 0.8): void
  * Play a sequence of MIDI notes one after another at the given tempo.
  * Returns a function that cancels any still-pending notes.
  */
-export function playSequence(midis: number[], bpm = 90): () => void {
+export function playSequence(midis: number[], bpm = 90): void {
   const secondsPerNote = 60 / bpm;
-  const timers: number[] = [];
   void ensureAudio().then(() => {
+    const inst = instrument();
+    const t0 = Tone.now() + 0.1;
     midis.forEach((midi, i) => {
-      const id = window.setTimeout(() => playNote(midi, secondsPerNote * 0.9), i * secondsPerNote * 1000);
-      timers.push(id);
+      inst.triggerAttackRelease(midiToFreq(midi), secondsPerNote * 0.9, t0 + i * secondsPerNote, 0.8);
     });
   });
-  return () => timers.forEach(clearTimeout);
 }
 
 /**
- * Play a list of timed NoteEvents (a song excerpt). Returns a cancel function.
+ * Play a list of timed NoteEvents (a song) with sample-accurate timing using
+ * Tone's Transport (no setTimeout jitter). Returns a cancel function.
  * `playbackRate` < 1 slows the song down for practice.
  */
 export function playNoteEvents(
@@ -136,18 +136,34 @@ export function playNoteEvents(
   playbackRate = 1,
   onNote?: (event: NoteEvent) => void,
 ): () => void {
-  const beatSeconds = 60 / (bpm * playbackRate);
-  const timers: number[] = [];
+  let cancelled = false;
+  const transport = Tone.getTransport();
   void ensureAudio().then(() => {
+    if (cancelled) return;
+    const beatSeconds = 60 / (bpm * playbackRate);
+    transport.stop();
+    transport.cancel();
+    transport.bpm.value = bpm * playbackRate;
+    const inst = instrument();
     for (const ev of events) {
-      const id = window.setTimeout(() => {
-        playNote(ev.midi, ev.durationBeats * beatSeconds * 0.95);
-        onNote?.(ev);
-      }, ev.startBeat * beatSeconds * 1000);
-      timers.push(id);
+      const when = ev.startBeat * beatSeconds;
+      transport.schedule((time) => {
+        inst.triggerAttackRelease(
+          midiToFreq(ev.midi),
+          Math.max(0.08, ev.durationBeats * beatSeconds * 0.95),
+          time,
+          0.8,
+        );
+        if (onNote) Tone.getDraw().schedule(() => onNote(ev), time);
+      }, when);
     }
+    transport.start();
   });
-  return () => timers.forEach(clearTimeout);
+  return () => {
+    cancelled = true;
+    transport.stop();
+    transport.cancel();
+  };
 }
 
 /** Set the master output volume, 0..1. */

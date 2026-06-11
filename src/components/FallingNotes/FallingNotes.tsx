@@ -5,8 +5,11 @@ import type { PlayGroup } from '@/utils/groups';
 
 export interface FallingNotesProps {
   groups: PlayGroup[];
-  /** Index of the group currently at the hit line. */
+  /** Index of the group at the hit line (used in wait/practice mode). */
   currentIndex: number;
+  /** Continuous playhead position in beats (used during playback). When set,
+   * it drives the motion directly for a smooth, time-accurate descent. */
+  playheadBeat?: number;
   startMidi: number;
   endMidi: number;
   showFingers?: boolean;
@@ -31,6 +34,7 @@ const LH_COLOR = { future: '#22d3ee', glow: '#67e8f9' };
 export function FallingNotes({
   groups,
   currentIndex,
+  playheadBeat,
   startMidi,
   endMidi,
   showFingers = true,
@@ -39,14 +43,14 @@ export function FallingNotes({
   className,
 }: FallingNotesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const playhead = useRef(0); // current beat at the hit line (lerped)
-  const prevIndex = useRef(currentIndex);
+  const playhead = useRef(0); // current beat at the hit line
+  const firedUntil = useRef(0); // highest beat already "hit"
   const combo = useRef(0);
   const comboPulse = useRef(0);
   const hitPulse = useRef(0);
   const effects = useRef<HitFx[]>([]);
-  const state = useRef({ groups, currentIndex, startMidi, endMidi, showFingers });
-  state.current = { groups, currentIndex, startMidi, endMidi, showFingers };
+  const state = useRef({ groups, currentIndex, playheadBeat, startMidi, endMidi, showFingers });
+  state.current = { groups, currentIndex, playheadBeat, startMidi, endMidi, showFingers };
   const layoutWidth = useMemo(() => buildLayout(startMidi, endMidi).width, [startMidi, endMidi]);
 
   useEffect(() => {
@@ -64,10 +68,31 @@ export function FallingNotes({
       if (canvas.height !== height) canvas.height = height;
       const now = performance.now();
 
-      // Detect newly-hit groups -> spawn effects + combo.
-      if (s.currentIndex > prevIndex.current) {
-        for (let i = prevIndex.current; i < s.currentIndex && i < s.groups.length; i++) {
-          const g = s.groups[i];
+      // --- Advance the playhead -------------------------------------------
+      if (s.playheadBeat != null) {
+        // Playback: follow the real-time clock continuously.
+        playhead.current = s.playheadBeat;
+      } else {
+        // Practice: ease toward the current target group.
+        const last = s.groups[s.groups.length - 1];
+        const target =
+          s.currentIndex < s.groups.length
+            ? s.groups[s.currentIndex].beat
+            : last
+              ? last.beat + (last.durations[0] ?? 1) + 2
+              : 0;
+        playhead.current += (target - playhead.current) * 0.16;
+      }
+
+      // Reset combo if the playhead jumped backwards (restart).
+      if (playhead.current < firedUntil.current - 0.25) {
+        firedUntil.current = playhead.current;
+        combo.current = 0;
+      }
+
+      // --- Detect notes crossing the hit line -> effects + combo ----------
+      for (const g of s.groups) {
+        if (g.beat > firedUntil.current && g.beat <= playhead.current + 0.001) {
           g.midis.forEach((midi, ni) => {
             const cx = layout.centerX(midi);
             if (cx !== null) effects.current.push({ x: cx, rh: g.hands[ni] !== 'L', born: now });
@@ -76,18 +101,9 @@ export function FallingNotes({
           comboPulse.current = 1;
           hitPulse.current = 1;
         }
-      } else if (s.currentIndex < prevIndex.current) {
-        combo.current = 0;
       }
-      prevIndex.current = s.currentIndex;
+      if (playhead.current > firedUntil.current) firedUntil.current = playhead.current;
 
-      // Target beat at the hit line.
-      const last = s.groups[s.groups.length - 1];
-      const targetBeat =
-        s.currentIndex < s.groups.length
-          ? s.groups[s.currentIndex].beat
-          : (last ? last.beat + last.durations[0] + 2 : 0);
-      playhead.current += (targetBeat - playhead.current) * 0.16;
       comboPulse.current *= 0.9;
       hitPulse.current *= 0.88;
 
@@ -110,11 +126,11 @@ export function FallingNotes({
       }
 
       // Hit line (glows on impact)
-      const glow = 0.4 + hitPulse.current * 0.6;
+      const glowA = 0.4 + hitPulse.current * 0.6;
       ctx.save();
       ctx.shadowColor = '#818cf8';
       ctx.shadowBlur = 10 + hitPulse.current * 24;
-      ctx.strokeStyle = `rgba(129,140,248,${glow})`;
+      ctx.strokeStyle = `rgba(129,140,248,${glowA})`;
       ctx.lineWidth = 2 + hitPulse.current * 3;
       ctx.beginPath();
       ctx.moveTo(0, hitY);
@@ -123,40 +139,41 @@ export function FallingNotes({
       ctx.restore();
 
       // Falling note bars
-      s.groups.forEach((group, i) => {
-        const isCurrent = i === s.currentIndex;
-        const isPast = i < s.currentIndex;
+      const ph = playhead.current;
+      s.groups.forEach((group) => {
         group.midis.forEach((midi, ni) => {
           const cx = layout.centerX(midi);
           if (cx === null) return;
           const black = isBlackKey(midi);
           const w = black ? BLACK_W : WHITE_W - 8;
           const dur = group.durations[ni] ?? 1;
-          const bottomY = hitY - (group.beat - playhead.current) * PX_PER_BEAT;
+          const bottomY = hitY - (group.beat - ph) * PX_PER_BEAT;
           const barH = Math.max(MIN_BAR_H, dur * PX_PER_BEAT - 6);
           const topY = bottomY - barH;
           if (bottomY < -20 || topY > height + 20) return;
 
+          const endBeat = group.beat + dur;
+          const active = ph >= group.beat - 0.3 && ph <= endBeat;
+          const passed = ph > endBeat;
           const rh = group.hands[ni] !== 'L';
           const palette = rh ? RH_COLOR : LH_COLOR;
           let fill = palette.future;
           let alpha = 1;
-          if (isPast) alpha = 0.18;
-          else if (isCurrent) fill = '#22c55e';
+          if (passed) alpha = 0.16;
+          else if (active) fill = '#22c55e';
 
           ctx.save();
           ctx.globalAlpha = alpha;
-          if (isCurrent) {
+          if (active) {
             ctx.shadowColor = '#22c55e';
             ctx.shadowBlur = 16;
-          } else if (!isPast) {
+          } else if (!passed) {
             ctx.shadowColor = palette.glow;
             ctx.shadowBlur = 6;
           }
           ctx.fillStyle = fill;
           roundRect(ctx, cx - w / 2, topY, w, barH, 6);
           ctx.fill();
-          // glossy top
           ctx.globalAlpha = alpha * 0.5;
           ctx.fillStyle = 'rgba(255,255,255,0.5)';
           roundRect(ctx, cx - w / 2 + 2, topY + 2, w - 4, 5, 3);
@@ -177,7 +194,7 @@ export function FallingNotes({
       // Hit effects (expanding rings + sparks)
       effects.current = effects.current.filter((fx) => now - fx.born < 480);
       for (const fx of effects.current) {
-        const age = (now - fx.born) / 480; // 0..1
+        const age = (now - fx.born) / 480;
         const r = 6 + age * 34;
         const a = 1 - age;
         const col = fx.rh ? '129,140,248' : '34,211,238';
@@ -188,7 +205,6 @@ export function FallingNotes({
         ctx.beginPath();
         ctx.arc(fx.x, hitY, r, 0, Math.PI * 2);
         ctx.stroke();
-        // sparks
         ctx.fillStyle = `rgba(255,255,255,${a})`;
         for (let k = 0; k < 5; k++) {
           const ang = (k / 5) * Math.PI * 2 + age;

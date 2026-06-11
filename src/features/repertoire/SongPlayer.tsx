@@ -66,8 +66,9 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
   const [speed, setSpeed] = useState(1);
   const [loop, setLoop] = useState(false);
   const [listening, setListening] = useState(false);
-  const [listenIndex, setListenIndex] = useState(0);
+  const [playheadBeat, setPlayheadBeat] = useState(0);
   const listenCancel = useRef<(() => void) | null>(null);
+  const listenRaf = useRef<number | null>(null);
 
   const pianoKeys = useSettings((s) => s.pianoKeys);
   const groups = useMemo(() => groupByBeat(song.notes, hand), [song, hand]);
@@ -106,29 +107,34 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
   function stopListen() {
     listenCancel.current?.();
     listenCancel.current = null;
+    if (listenRaf.current !== null) cancelAnimationFrame(listenRaf.current);
+    listenRaf.current = null;
     setListening(false);
   }
 
   function startListen() {
     stopListen();
     setListening(true);
-    setListenIndex(0);
+    setPlayheadBeat(0);
     const cancelAudio = playNoteEvents(handNotes, song.bpm, speed);
     const beatSec = 60 / (song.bpm * speed);
-    const timers: number[] = [];
-    groups.forEach((g, i) => {
-      timers.push(window.setTimeout(() => setListenIndex(i), g.beat * beatSec * 1000));
-    });
     const last = groups[groups.length - 1];
-    const endMs = (last ? last.beat + 2 : 0) * beatSec * 1000;
-    timers.push(window.setTimeout(() => setListening(false), endMs + 400));
-    listenCancel.current = () => {
-      cancelAudio();
-      timers.forEach(clearTimeout);
+    const totalBeats = last ? last.beat + (last.durations[0] ?? 1) : 0;
+    const startTime = performance.now();
+    const tick = () => {
+      const beats = (performance.now() - startTime) / 1000 / beatSec;
+      setPlayheadBeat(beats);
+      if (beats > totalBeats + 2) {
+        stopListen();
+        return;
+      }
+      listenRaf.current = requestAnimationFrame(tick);
     };
+    listenRaf.current = requestAnimationFrame(tick);
+    listenCancel.current = () => cancelAudio();
   }
 
-  const currentIndex = listening ? listenIndex : state.finished ? groups.length : state.index;
+  const currentIndex = state.finished ? groups.length : state.index;
 
   const decorations: KeyDecorations = {};
   if (!listening && !state.finished) {
@@ -236,6 +242,7 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
         decorations={decorations}
         groups={groups}
         currentIndex={currentIndex}
+        playheadBeat={listening ? playheadBeat : undefined}
         forceShowFingers
         fallingHeight={300}
         onKeyDown={(midi) => dispatch({ type: 'input', midi, fromMic: false })}

@@ -14,6 +14,8 @@ export interface PracticeStageProps {
   /** Falling-notes groups; when provided, the lane is shown above the keys. */
   groups?: PlayGroup[];
   currentIndex?: number;
+  /** Continuous playhead (beats) for smooth playback; omit for practice mode. */
+  playheadBeat?: number;
   /** MIDI note to keep centered when the keyboard is wider than the viewport. */
   focusMidi?: number;
   forceShowFingers?: boolean;
@@ -31,6 +33,7 @@ export function PracticeStage({
   onKeyDown,
   groups,
   currentIndex = 0,
+  playheadBeat,
   focusMidi = 60,
   forceShowFingers,
   fallingHeight = 280,
@@ -58,6 +61,7 @@ export function PracticeStage({
         <FallingNotes
           groups={groups}
           currentIndex={currentIndex}
+          playheadBeat={playheadBeat}
           startMidi={start}
           endMidi={end}
           height={fallingHeight}
