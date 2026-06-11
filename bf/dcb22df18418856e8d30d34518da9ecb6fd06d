@@ -1,0 +1,31 @@
+src/components/Piano/PracticeStage.tsx
+  s_7b8b3ad99dc88e::t_3f6921be9d1dd5 21-23,34,37-50,53-56,58
+src/components/FallingNotes/FallingNotes.tsx
+  s_7b8b3ad99dc88e::t_7ae655010699d9 1
+  s_7b8b3ad99dc88e::t_8d590a9f64a61d 236-242
+src/index.css
+  s_7b8b3ad99dc88e::t_65102262645957 49-58
+src/features/theory/LessonView.tsx
+  s_7b8b3ad99dc88e::t_ee6a62612cecc4 15-17
+  s_7b8b3ad99dc88e::t_28f12add0eacc7 39-40
+src/components/Piano/PianoKeyboard.tsx
+  s_7b8b3ad99dc88e::t_771e3d3cc40343 1,6,45-46,55,70,100,174-187,222,234,239,258,275
+src/features/home/HomePage.tsx
+  s_7b8b3ad99dc88e::t_3bfdbb8c240204 41-42,46-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "bfdcb22df18418856e8d30d34518da9ecb6fd06d",
+  "prompts": {},
+  "sessions": {
+    "s_7b8b3ad99dc88e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f29df47-25c3-4d8a-a655-5abf8b4aab11",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Cristhian David Mora Uribe <63613016+cdmorau@users.noreply.github.com>"
+    }
+  }
+}
