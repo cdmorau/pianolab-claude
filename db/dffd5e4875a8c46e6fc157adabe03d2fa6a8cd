@@ -1,0 +1,42 @@
+src/data/pianoSizes.ts
+  s_7b8b3ad99dc88e::t_fd70c6d8d04fbf 24-39
+src/features/repertoire/SongPlayer.tsx
+  s_7b8b3ad99dc88e::t_eddf6ba731117c 228-235,237-238,240
+  s_7b8b3ad99dc88e::t_20ef79fa4e90df 72,78-80
+  s_7b8b3ad99dc88e::t_f4c56d82a2f206 3-4,6
+src/components/Piano/PianoKeyboard.tsx
+  s_7b8b3ad99dc88e::t_8b3e17e8b73954 294-311
+  s_7b8b3ad99dc88e::t_b2d22d4fa5cd0a 45-46
+  s_7b8b3ad99dc88e::t_ea0f8401084f27 75
+  s_7b8b3ad99dc88e::t_dc33e5fb8e5192 196-203
+  s_7b8b3ad99dc88e::t_fc7c8c315b5667 117,123
+src/components/FallingNotes/FallingNotes.tsx
+  s_7b8b3ad99dc88e::t_0de333d0e9232e 124-125,127-128
+  s_7b8b3ad99dc88e::t_f643b99bd8b049 18-19
+  s_7b8b3ad99dc88e::t_5b3e8d2134c1e4 33
+src/components/Piano/PianoControls.tsx
+  s_7b8b3ad99dc88e::t_9cfa66f75daafd 38-43
+  s_7b8b3ad99dc88e::t_ad52319b6514e5 6
+src/features/challenges/ChallengeRunner.tsx
+  s_7b8b3ad99dc88e::t_cb1b5902828f61 154,158-159
+  s_7b8b3ad99dc88e::t_aa84aac1f97c62 278-285,287-288
+  s_7b8b3ad99dc88e::t_7c6c906689ff14 3-4,6,8
+src/components/Piano/PracticeStage.tsx
+  s_7b8b3ad99dc88e::t_f094d184a396f7 1-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "dbdffd5e4875a8c46e6fc157adabe03d2fa6a8cd",
+  "prompts": {},
+  "sessions": {
+    "s_7b8b3ad99dc88e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f29df47-25c3-4d8a-a655-5abf8b4aab11",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Cristhian David Mora Uribe <63613016+cdmorau@users.noreply.github.com>"
+    }
+  }
+}
