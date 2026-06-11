@@ -156,7 +156,6 @@ export function ChallengeRunner({ challenge, onExit }: { challenge: Challenge; o
   const [state, dispatch] = useReducer(reducer, challenge.build(), init);
 
   const range = displayRange(challenge.rangeStart, challenge.rangeEnd, pianoKeys);
-  const focusMidi = Math.round((challenge.rangeStart + challenge.rangeEnd) / 2);
 
   const step = state.steps[state.stepIndex];
 
@@ -290,7 +289,6 @@ export function ChallengeRunner({ challenge, onExit }: { challenge: Challenge; o
       <PracticeStage
         start={range.start}
         end={range.end}
-        focusMidi={focusMidi}
         decorations={decorations}
         groups={melodyGroups.length > 0 ? melodyGroups : undefined}
         currentIndex={state.stepIndex}

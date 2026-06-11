@@ -38,17 +38,19 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="card flex flex-col gap-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+      <section className="flex flex-col gap-3">
+        <div className="card flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-bold">🎹 {t('piano.freePlay')}</h2>
           <PianoControls />
         </div>
-        <PianoKeyboard
-          startMidi={size.startMidi}
-          endMidi={size.endMidi}
-          enablePcKeyboard
-          className="bg-slate-200/40 p-1 dark:bg-slate-900/40"
-        />
+        <div className="full-bleed px-4">
+          <PianoKeyboard
+            startMidi={size.startMidi}
+            endMidi={size.endMidi}
+            enablePcKeyboard
+            className="overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900/50"
+          />
+        </div>
         <p className="text-center text-xs text-slate-500">{t('challenges.useInput')}</p>
       </section>
 

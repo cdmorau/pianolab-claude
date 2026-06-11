@@ -78,7 +78,6 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
   );
   const reqRange = useMemo(() => songRange(song), [song]);
   const range = useMemo(() => displayRange(reqRange.start, reqRange.end, pianoKeys), [reqRange, pianoKeys]);
-  const focusMidi = Math.round((reqRange.start + reqRange.end) / 2);
 
   const [state, dispatch] = useReducer(reducerP, groups, initP);
 
@@ -238,7 +237,6 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
       <PracticeStage
         start={range.start}
         end={range.end}
-        focusMidi={focusMidi}
         decorations={decorations}
         groups={groups}
         currentIndex={currentIndex}

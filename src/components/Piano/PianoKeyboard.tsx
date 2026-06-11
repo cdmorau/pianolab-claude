@@ -1,9 +1,9 @@
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { isBlackKey, midiToNoteName, pitchClass } from '@/audio/notes';
 import { playNote } from '@/audio/engine';
 import { useSettings } from '@/state/settingsStore';
 import type { KeyDecoration, KeyDecorations } from './types';
-import { WHITE_W, WHITE_H, BLACK_W, BLACK_H, buildLayout } from './layout';
+import { WHITE_W, WHITE_H, BLACK_W, BLACK_H } from './layout';
 
 const TOP = 10; // bezel / felt strip height above the keys
 
@@ -42,10 +42,8 @@ export interface PianoKeyboardProps {
   enablePcKeyboard?: boolean;
   pcOctaveStart?: number;
   forceShowFingers?: boolean;
-  /** Wrap in its own horizontal scroll container. Set false to share a parent's. */
-  scroll?: boolean;
-  /** MIDI note to keep centered when the keyboard overflows its container. */
-  focusMidi?: number;
+  /** Fixed display height in px (keys keep their height; width scales to fit). */
+  displayHeight?: number;
   className?: string;
 }
 
@@ -54,12 +52,7 @@ interface PositionedKey {
   x: number;
 }
 
-function whiteKeyPath(x: number, w: number, h: number, r: number): string {
-  const t = TOP;
-  return `M${x},${t} L${x + w},${t} L${x + w},${t + h - r} Q${x + w},${t + h} ${x + w - r},${t + h} L${x + r},${t + h} Q${x},${t + h} ${x},${t + h - r} Z`;
-}
-
-function blackKeyPath(x: number, w: number, h: number, r: number): string {
+function keyPath(x: number, w: number, h: number, r: number): string {
   const t = TOP;
   return `M${x},${t} L${x + w},${t} L${x + w},${t + h - r} Q${x + w},${t + h} ${x + w - r},${t + h} L${x + r},${t + h} Q${x},${t + h} ${x},${t + h - r} Z`;
 }
@@ -74,8 +67,7 @@ export function PianoKeyboard({
   enablePcKeyboard = false,
   pcOctaveStart = 60,
   forceShowFingers,
-  scroll = true,
-  focusMidi = 60,
+  displayHeight,
   className,
 }: PianoKeyboardProps) {
   const gid = useId().replace(/[:]/g, '');
@@ -85,7 +77,6 @@ export function PianoKeyboard({
   const showFingers = forceShowFingers ?? showFingersSetting;
   const [activeNotes, setActiveNotes] = useState<Set<number>>(new Set());
   const pressedRef = useRef<Set<number>>(new Set());
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const { whiteKeys, blackKeys, width } = useMemo(() => {
     const whites: PositionedKey[] = [];
@@ -106,23 +97,8 @@ export function PianoKeyboard({
         blacks.push({ midi: m, x: (leftWhiteIndex + 1) * WHITE_W - BLACK_W / 2 });
       }
     }
-    return {
-      whiteKeys: whites,
-      blackKeys: blacks,
-      width: whites.length * WHITE_W,
-    };
+    return { whiteKeys: whites, blackKeys: blacks, width: whites.length * WHITE_W };
   }, [startMidi, endMidi]);
-
-  // Center the scroll on the focus note for wide keyboards.
-  useLayoutEffect(() => {
-    if (!scroll) return;
-    const el = scrollRef.current;
-    if (!el) return;
-    if (width > el.clientWidth) {
-      const cx = buildLayout(startMidi, endMidi).centerX(focusMidi) ?? width / 2;
-      el.scrollLeft = Math.max(0, cx - el.clientWidth / 2);
-    }
-  }, [width, scroll, focusMidi, startMidi, endMidi]);
 
   const press = (midi: number) => {
     if (pressedRef.current.has(midi)) return;
@@ -195,15 +171,20 @@ export function PianoKeyboard({
     );
   };
 
-  const svg = (
-    <svg
-      viewBox={`0 0 ${width} ${totalH}`}
-      width={width}
-      height={totalH}
-      style={{ display: 'block' }}
-      role="group"
-      aria-label="piano keyboard"
-    >
+  // Show note-name labels only when there's enough horizontal room per key.
+  const labelsFit = whiteKeys.length <= 36;
+
+  return (
+    <div className={className} style={{ userSelect: 'none', touchAction: 'none', width: '100%' }}>
+      <svg
+        viewBox={`0 0 ${width} ${totalH}`}
+        width="100%"
+        height={displayHeight ?? totalH}
+        preserveAspectRatio="none"
+        style={{ display: 'block' }}
+        role="group"
+        aria-label="piano keyboard"
+      >
         <defs>
           <linearGradient id={wId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="#ffffff" />
@@ -229,7 +210,6 @@ export function PianoKeyboard({
           </linearGradient>
         </defs>
 
-        {/* Top bezel / felt strip */}
         <rect x={0} y={0} width={width} height={TOP} fill={`url(#felt-${gid})`} />
 
         {/* White keys */}
@@ -239,7 +219,7 @@ export function PianoKeyboard({
           return (
             <g key={midi}>
               <path
-                d={whiteKeyPath(x + 1, WHITE_W - 2, WHITE_H, 5)}
+                d={keyPath(x + 1, WHITE_W - 2, WHITE_H, 5)}
                 fill={whiteFill(midi, deco)}
                 stroke="#94a3b8"
                 strokeWidth={1}
@@ -251,12 +231,12 @@ export function PianoKeyboard({
                 onPointerUp={() => release(midi)}
                 onPointerLeave={() => release(midi)}
               />
-              {showNoteNames && (
+              {showNoteNames && (labelsFit || isC) && (
                 <text
                   x={x + WHITE_W / 2}
                   y={TOP + WHITE_H - 14}
                   textAnchor="middle"
-                  fontSize={isC ? 11 : 9}
+                  fontSize={isC ? 12 : 10}
                   fill={isC ? '#4f46e5' : '#94a3b8'}
                   fontWeight={isC ? 700 : 500}
                   pointerEvents="none"
@@ -275,7 +255,7 @@ export function PianoKeyboard({
           return (
             <g key={midi}>
               <path
-                d={blackKeyPath(x, BLACK_W, BLACK_H, 4)}
+                d={keyPath(x, BLACK_W, BLACK_H, 4)}
                 fill={blackFill(midi, deco)}
                 stroke="#020617"
                 strokeWidth={1}
@@ -287,30 +267,12 @@ export function PianoKeyboard({
                 onPointerUp={() => release(midi)}
                 onPointerLeave={() => release(midi)}
               />
-              {/* subtle top highlight for a 3D feel */}
               <rect x={x + 3} y={TOP + 4} width={BLACK_W - 6} height={6} rx={3} fill="rgba(255,255,255,0.18)" pointerEvents="none" />
               {renderFinger(deco, x + BLACK_W / 2, TOP + BLACK_H - 16, true)}
             </g>
           );
         })}
-    </svg>
-  );
-
-  if (!scroll) {
-    return (
-      <div className={className} style={{ userSelect: 'none' }}>
-        {svg}
-      </div>
-    );
-  }
-
-  return (
-    <div
-      ref={scrollRef}
-      className={`overflow-x-auto rounded-xl ${className ?? ''}`}
-      style={{ userSelect: 'none', touchAction: 'pan-x' }}
-    >
-      {svg}
+      </svg>
     </div>
   );
 }

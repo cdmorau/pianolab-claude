@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { buildLayout, WHITE_W, BLACK_W } from '@/components/Piano/layout';
 import { isBlackKey } from '@/audio/notes';
 import type { PlayGroup } from '@/utils/groups';
@@ -14,8 +14,6 @@ export interface FallingNotesProps {
   endMidi: number;
   showFingers?: boolean;
   height?: number;
-  /** Wrap in its own horizontal scroll container. Set false to share a parent's. */
-  scroll?: boolean;
   className?: string;
 }
 
@@ -39,7 +37,6 @@ export function FallingNotes({
   endMidi,
   showFingers = true,
   height = 300,
-  scroll = true,
   className,
 }: FallingNotesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -51,7 +48,6 @@ export function FallingNotes({
   const effects = useRef<HitFx[]>([]);
   const state = useRef({ groups, currentIndex, playheadBeat, startMidi, endMidi, showFingers });
   state.current = { groups, currentIndex, playheadBeat, startMidi, endMidi, showFingers };
-  const layoutWidth = useMemo(() => buildLayout(startMidi, endMidi).width, [startMidi, endMidi]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -237,11 +233,14 @@ export function FallingNotes({
     return () => cancelAnimationFrame(raf);
   }, [height]);
 
-  const canvas = (
-    <canvas ref={canvasRef} style={{ display: 'block', width: layoutWidth, height }} aria-hidden />
+  return (
+    <canvas
+      ref={canvasRef}
+      className={className}
+      style={{ display: 'block', width: '100%', height }}
+      aria-hidden
+    />
   );
-  if (!scroll) return canvas;
-  return <div className={`overflow-x-auto ${className ?? ''}`}>{canvas}</div>;
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {

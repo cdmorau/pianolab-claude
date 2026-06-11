@@ -1,10 +1,7 @@
-import { useLayoutEffect, useRef } from 'react';
 import { PianoKeyboard } from './PianoKeyboard';
-import { buildLayout } from './layout';
 import type { KeyDecorations } from './types';
 import { FallingNotes } from '@/components/FallingNotes/FallingNotes';
 import type { PlayGroup } from '@/utils/groups';
-import { useSettings } from '@/state/settingsStore';
 
 export interface PracticeStageProps {
   start: number;
@@ -16,15 +13,14 @@ export interface PracticeStageProps {
   currentIndex?: number;
   /** Continuous playhead (beats) for smooth playback; omit for practice mode. */
   playheadBeat?: number;
-  /** MIDI note to keep centered when the keyboard is wider than the viewport. */
-  focusMidi?: number;
   forceShowFingers?: boolean;
   fallingHeight?: number;
 }
 
 /**
- * Falling-notes lane + keyboard sharing ONE horizontal scroll container, so
- * the columns stay aligned and the whole stage scrolls/centers together.
+ * Falling-notes lane + keyboard, both stretched to the full available width so
+ * the whole keyboard is always visible (no scroll) and the columns stay aligned.
+ * Spans the full viewport width via `full-bleed`.
  */
 export function PracticeStage({
   start,
@@ -34,50 +30,32 @@ export function PracticeStage({
   groups,
   currentIndex = 0,
   playheadBeat,
-  focusMidi = 60,
   forceShowFingers,
-  fallingHeight = 280,
+  fallingHeight = 300,
 }: PracticeStageProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const showFingers = useSettings((s) => s.showFingers);
-
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const layout = buildLayout(start, end);
-    const cx = layout.centerX(focusMidi) ?? layout.width / 2;
-    if (layout.width > el.clientWidth) {
-      el.scrollLeft = Math.max(0, cx - el.clientWidth / 2);
-    }
-  }, [start, end, focusMidi]);
-
   return (
-    <div
-      ref={ref}
-      className="overflow-x-auto rounded-xl bg-slate-100 dark:bg-slate-900/50"
-      style={{ touchAction: 'pan-x' }}
-    >
-      {groups && groups.length > 0 && (
-        <FallingNotes
-          groups={groups}
-          currentIndex={currentIndex}
-          playheadBeat={playheadBeat}
+    <div className="full-bleed px-4">
+      <div className="overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900/50">
+        {groups && groups.length > 0 && (
+          <FallingNotes
+            groups={groups}
+            currentIndex={currentIndex}
+            playheadBeat={playheadBeat}
+            startMidi={start}
+            endMidi={end}
+            height={fallingHeight}
+            showFingers={forceShowFingers}
+          />
+        )}
+        <PianoKeyboard
           startMidi={start}
           endMidi={end}
-          height={fallingHeight}
-          showFingers={forceShowFingers ?? showFingers}
-          scroll={false}
+          decorations={decorations}
+          onKeyDown={onKeyDown}
+          enablePcKeyboard
+          forceShowFingers={forceShowFingers}
         />
-      )}
-      <PianoKeyboard
-        startMidi={start}
-        endMidi={end}
-        decorations={decorations}
-        onKeyDown={onKeyDown}
-        enablePcKeyboard
-        forceShowFingers={forceShowFingers}
-        scroll={false}
-      />
+      </div>
     </div>
   );
 }
