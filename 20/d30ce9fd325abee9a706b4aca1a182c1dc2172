@@ -1,0 +1,30 @@
+src/data/songs/_util.ts
+  s_7b8b3ad99dc88e::t_37f3b08f152bb8 29,33
+  s_7b8b3ad99dc88e::t_ead006013e7344 11,14
+src/types/song.ts
+  s_7b8b3ad99dc88e::t_d8fc03ffa18157 15-16
+src/audio/engine.ts
+  s_7b8b3ad99dc88e::t_3cd946664fe2a9 155
+src/audio/smfParser.ts
+  s_7b8b3ad99dc88e::t_3a5c15860bb8db 81-82
+  s_7b8b3ad99dc88e::t_def37ff63b6185 13-14
+  s_7b8b3ad99dc88e::t_3515d6cea6c84a 116,120-125
+src/audio/midiImport.ts
+  s_7b8b3ad99dc88e::t_b2d11d4dcbb00c 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "20d30ce9fd325abee9a706b4aca1a182c1dc2172",
+  "prompts": {},
+  "sessions": {
+    "s_7b8b3ad99dc88e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f29df47-25c3-4d8a-a655-5abf8b4aab11",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Cristhian David Mora Uribe <63613016+cdmorau@users.noreply.github.com>"
+    }
+  }
+}
