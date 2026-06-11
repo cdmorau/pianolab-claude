@@ -1,0 +1,23 @@
+package.json
+  s_7b8b3ad99dc88e::t_f1aa11326e3c84 11
+.github/workflows/deploy.yml
+  s_7b8b3ad99dc88e::t_7e77dc917fedab 1-56
+vite.config.ts
+  s_7b8b3ad99dc88e::t_a21944ae6b27c4 8-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "aab774abdd3f172706757d53e12b829cefd41f0a",
+  "prompts": {},
+  "sessions": {
+    "s_7b8b3ad99dc88e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f29df47-25c3-4d8a-a655-5abf8b4aab11",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Cristhian David Mora Uribe <63613016+cdmorau@users.noreply.github.com>"
+    }
+  }
+}
