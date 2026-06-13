@@ -114,8 +114,9 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
 
   // Metronome: independent of playback transport (uses Tone.Clock)
   useEffect(() => {
-    if (!metronomeOn) return;
-    return startMetronome(customBpm, song.beatsPerMeasure);
+    if (!metronomeOn) return stopMetronome;
+    startMetronome(customBpm, song.beatsPerMeasure);
+    return stopMetronome;
   }, [metronomeOn, customBpm, song.beatsPerMeasure]);
 
   function handleTap() {
