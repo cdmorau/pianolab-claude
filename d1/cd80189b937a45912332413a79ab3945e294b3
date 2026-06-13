@@ -1,0 +1,19 @@
+src/features/repertoire/SongPlayer.tsx
+  s_7b8b3ad99dc88e::t_8a41884d07d515 117-119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "d1cd80189b937a45912332413a79ab3945e294b3",
+  "prompts": {},
+  "sessions": {
+    "s_7b8b3ad99dc88e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f29df47-25c3-4d8a-a655-5abf8b4aab11",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Cristhian David Mora Uribe <63613016+cdmorau@users.noreply.github.com>"
+    }
+  }
+}
