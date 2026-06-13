@@ -7,6 +7,7 @@ import { displayRange } from '@/data/pianoSizes';
 import { MicMeter } from '@/components/MicMeter/MicMeter';
 import { useMicNote } from '@/components/MicMeter/useMic';
 import { playNoteEvents } from '@/audio/engine';
+import { startMetronome, stopMetronome } from '@/audio/metronome';
 import { notesMatch } from '@/audio/notes';
 import { groupByBeat, type PlayGroup } from '@/utils/groups';
 import { songRange } from '@/data/songs';
@@ -55,16 +56,17 @@ function reducerP(state: PState, action: PAction): PState {
   }
 }
 
-const SPEEDS = [0.5, 0.75, 1];
-
 export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void }) {
   const { t } = useTranslation();
   const language = useSettings((s) => s.language);
   const recordSong = useProgress((s) => s.recordSong);
 
   const [hand, setHand] = useState<HandChoice>('both');
-  const [speed, setSpeed] = useState(1);
+  const [customBpm, setCustomBpm] = useState(song.bpm);
+  const speed = customBpm / song.bpm; // derived — drives playNoteEvents + rAF timing
   const [loop, setLoop] = useState(false);
+  const [metronomeOn, setMetronomeOn] = useState(false);
+  const [tapTimes, setTapTimes] = useState<number[]>([]);
   const [listening, setListening] = useState(false);
   const [playheadBeat, setPlayheadBeat] = useState(0);
   const listenCancel = useRef<(() => void) | null>(null);
@@ -103,6 +105,34 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
 
   useEffect(() => () => stopListen(), []);
 
+  // Reset tempo + metronome when song changes
+  useEffect(() => {
+    setCustomBpm(song.bpm);
+    setMetronomeOn(false);
+    setTapTimes([]);
+  }, [song.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Metronome: independent of playback transport (uses Tone.Clock)
+  useEffect(() => {
+    if (!metronomeOn) return;
+    return startMetronome(customBpm, song.beatsPerMeasure);
+  }, [metronomeOn, customBpm, song.beatsPerMeasure]);
+
+  function handleTap() {
+    const now = performance.now();
+    setTapTimes((prev) => {
+      const recent = prev.filter((t) => now - t < 3000);
+      const next = [...recent, now];
+      if (next.length >= 2) {
+        const diffs = next.slice(1).map((t, i) => t - next[i]);
+        const avgMs = diffs.reduce((a, b) => a + b) / diffs.length;
+        const tapped = Math.max(20, Math.min(300, Math.round(60000 / avgMs)));
+        setCustomBpm(tapped);
+      }
+      return next;
+    });
+  }
+
   function stopListen() {
     listenCancel.current?.();
     listenCancel.current = null;
@@ -116,7 +146,8 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
     setListening(true);
     setPlayheadBeat(0);
     const cancelAudio = playNoteEvents(handNotes, song.bpm, speed);
-    const beatSec = 60 / (song.bpm * speed);
+    if (metronomeOn) startMetronome(customBpm, song.beatsPerMeasure);
+    const beatSec = 60 / customBpm;
     const last = groups[groups.length - 1];
     const totalBeats = last ? last.beat + (last.durations[0] ?? 1) : 0;
     const startTime = performance.now();
@@ -185,20 +216,30 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
             ↺ {t('common.reset')}
           </button>
 
-          <label className="ml-auto flex items-center gap-2 text-sm">
-            {t('repertoire.speed')}
-            <select
-              className="rounded-lg border border-slate-300 bg-transparent px-2 py-1 dark:border-slate-700"
-              value={speed}
-              onChange={(e) => setSpeed(Number(e.target.value))}
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <span className="text-xs text-slate-400 tabular-nums">
+              {t('repertoire.bpmLabel')}: <strong className="text-slate-200">{customBpm}</strong>
+              {customBpm !== song.bpm && (
+                <span className="ml-1 text-slate-500">({t('repertoire.originalBpm', { bpm: song.bpm })})</span>
+              )}
+            </span>
+            <button
+              className="btn-ghost py-0.5 px-2 text-xs"
+              onClick={handleTap}
+              title={t('repertoire.tapTempo')}
             >
-              {SPEEDS.map((s) => (
-                <option key={s} value={s} className="text-black">
-                  {s}×
-                </option>
-              ))}
-            </select>
-          </label>
+              👆 {t('repertoire.tapTempo')}
+              {tapTimes.length >= 1 && tapTimes.length < 4 && (
+                <span className="ml-1 text-slate-500">{tapTimes.length}…</span>
+              )}
+            </button>
+            <button
+              className={`btn-ghost py-0.5 px-2 text-xs ${metronomeOn ? 'bg-brand-500/20 text-brand-300' : ''}`}
+              onClick={() => setMetronomeOn((v) => !v)}
+            >
+              🎵 {t('repertoire.metronome')}
+            </button>
+          </div>
 
           <label className="flex items-center gap-2 text-sm">
             {t('common.hand')}
@@ -223,6 +264,25 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
             <input type="checkbox" checked={loop} onChange={(e) => setLoop(e.target.checked)} />
             {t('repertoire.loop')}
           </label>
+
+          {/* BPM slider */}
+          <div className="flex w-full items-center gap-2 pt-1">
+            <span className="shrink-0 text-xs text-slate-500">
+              {Math.round(song.bpm * 0.3)} BPM
+            </span>
+            <input
+              type="range"
+              min={Math.max(20, Math.round(song.bpm * 0.3))}
+              max={Math.round(song.bpm * 1.2)}
+              step={1}
+              value={customBpm}
+              className="flex-1 accent-brand-500"
+              onChange={(e) => { setCustomBpm(Number(e.target.value)); setTapTimes([]); }}
+            />
+            <span className="shrink-0 text-xs text-slate-500">
+              {Math.round(song.bpm * 1.2)} BPM
+            </span>
+          </div>
         </div>
 
         <p className="text-xs text-slate-500">

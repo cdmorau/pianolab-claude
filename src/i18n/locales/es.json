@@ -108,6 +108,10 @@
     "waitModeDesc": "Espera a que toques la nota correcta para avanzar.",
     "loop": "Repetir sección",
     "speed": "Velocidad",
+    "metronome": "Metrónomo",
+    "tapTempo": "Tap tempo",
+    "bpmLabel": "BPM",
+    "originalBpm": "Original: {{bpm}}",
     "personalUse": "Arreglo simplificado · uso personal/educativo",
     "publicDomain": "Dominio público",
     "noImported": "Aún no has importado canciones."
@@ -137,6 +141,7 @@
     "midi": "Teclado MIDI",
     "midiConnected": "MIDI conectado",
     "midiNone": "Sin dispositivo MIDI",
+    "midiConnect": "Conectar MIDI",
     "showFingers": "Mostrar dedos",
     "showNames": "Mostrar nombres de notas",
     "size": "Tamaño",

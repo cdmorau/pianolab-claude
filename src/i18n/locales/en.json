@@ -108,6 +108,10 @@
     "waitModeDesc": "Waits for you to play the correct note before moving on.",
     "loop": "Loop section",
     "speed": "Speed",
+    "metronome": "Metronome",
+    "tapTempo": "Tap tempo",
+    "bpmLabel": "BPM",
+    "originalBpm": "Original: {{bpm}}",
     "personalUse": "Simplified arrangement · personal/educational use",
     "publicDomain": "Public domain",
     "noImported": "You haven't imported any songs yet."
@@ -137,6 +141,7 @@
     "midi": "MIDI keyboard",
     "midiConnected": "MIDI connected",
     "midiNone": "No MIDI device",
+    "midiConnect": "Connect MIDI",
     "showFingers": "Show fingers",
     "showNames": "Show note names",
     "size": "Size",

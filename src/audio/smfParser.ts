@@ -68,6 +68,7 @@ export function parseSmf(buffer: ArrayBuffer): ParsedMidi {
   const ticksPerQuarter = division & 0x8000 ? 480 : division; // ignore SMPTE, fall back
 
   let bpm = 120;
+  let bpmSet = false; // capture only the first tempo event (initial song tempo)
   let beatsPerMeasure = 4;
   const notes: ParsedNote[] = [];
 
@@ -99,7 +100,7 @@ export function parseSmf(buffer: ArrayBuffer): ParsedMidi {
         const len = r.varInt();
         if (metaType === 0x51 && len === 3) {
           const us = (r.u8() << 16) | (r.u8() << 8) | r.u8();
-          bpm = Math.round(60_000_000 / us);
+          if (!bpmSet) { bpm = Math.round(60_000_000 / us); bpmSet = true; }
         } else if (metaType === 0x58 && len >= 2) {
           beatsPerMeasure = r.u8();
           r.pos += len - 1;

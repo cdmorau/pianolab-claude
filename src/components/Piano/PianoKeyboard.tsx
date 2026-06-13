@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { isBlackKey, midiToNoteName, pitchClass } from '@/audio/notes';
 import { playNote } from '@/audio/engine';
+import { useMidiNote } from '@/audio/useMidi';
 import { useSettings } from '@/state/settingsStore';
 import type { KeyDecoration, KeyDecorations } from './types';
 import { WHITE_W, WHITE_H, BLACK_W, BLACK_H } from './layout';
@@ -114,6 +115,12 @@ export function PianoKeyboard({
     setActiveNotes(new Set(pressedRef.current));
     onKeyUp?.(midi);
   };
+
+  // MIDI keyboard / Bluetooth MIDI — press keys visually + trigger game logic
+  useMidiNote(
+    (midi) => { if (midi >= startMidi && midi <= endMidi) press(midi); },
+    (midi) => { release(midi); },
+  );
 
   useEffect(() => {
     if (!enablePcKeyboard) return;
