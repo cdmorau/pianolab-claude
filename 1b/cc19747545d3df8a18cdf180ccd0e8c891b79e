@@ -1,0 +1,44 @@
+src/components/Piano/PianoKeyboard.tsx
+  s_7b8b3ad99dc88e::t_ceb8999c8c6609 4
+  s_7b8b3ad99dc88e::t_0766124f4437bd 119-124
+src/i18n/locales/es.json
+  s_7b8b3ad99dc88e::t_6104b51f527e94 144
+  s_7b8b3ad99dc88e::t_bfd9caf8e83bf6 111-114
+src/audio/metronome.ts
+  s_7b8b3ad99dc88e::t_3a40b2d97e7d18 1-56
+src/audio/midiManager.ts
+  s_7b8b3ad99dc88e::t_fabad58656735c 1-121
+src/features/repertoire/SongPlayer.tsx
+  s_7b8b3ad99dc88e::t_63103e83e5b929 149-150
+  s_7b8b3ad99dc88e::t_429c96ee558b61 267-285
+  s_7b8b3ad99dc88e::t_3d2e96eb5710e7 219-229,231-242
+  s_7b8b3ad99dc88e::t_68248c11442d01 108-135
+  s_7b8b3ad99dc88e::t_9a0f12254bda41 65-66,68-69
+  s_7b8b3ad99dc88e::t_355f45aeca0bab 10
+src/i18n/locales/en.json
+  s_7b8b3ad99dc88e::t_203e3c68b576a3 111-114
+  s_7b8b3ad99dc88e::t_314d8bf13656c8 144
+src/components/Piano/PianoControls.tsx
+  s_7b8b3ad99dc88e::t_4def421135cd8a 3,6,15,46-61
+src/audio/useMidi.ts
+  s_7b8b3ad99dc88e::t_6df20656374be5 1-38
+src/audio/smfParser.ts
+  s_7b8b3ad99dc88e::t_130b744ef2217c 71
+  s_7b8b3ad99dc88e::t_df5256186bcdc1 103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "1bcc19747545d3df8a18cdf180ccd0e8c891b79e",
+  "prompts": {},
+  "sessions": {
+    "s_7b8b3ad99dc88e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f29df47-25c3-4d8a-a655-5abf8b4aab11",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Cristhian David Mora Uribe <63613016+cdmorau@users.noreply.github.com>"
+    }
+  }
+}
