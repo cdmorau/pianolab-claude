@@ -1,0 +1,19 @@
+src/features/miditools/audioTranscriber.ts
+  s_7b8b3ad99dc88e::t_dbeddaf897b00a 7-11,19-29,31-53,55-80,85,122,144,146-153
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "aa628f577e4c0708e21115cc228eae4aed09a43e",
+  "prompts": {},
+  "sessions": {
+    "s_7b8b3ad99dc88e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f29df47-25c3-4d8a-a655-5abf8b4aab11",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Cristhian David Mora Uribe <63613016+cdmorau@users.noreply.github.com>"
+    }
+  }
+}
