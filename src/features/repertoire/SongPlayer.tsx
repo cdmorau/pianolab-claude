@@ -67,7 +67,7 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
 
   const [hand, setHand] = useState<HandChoice>('both');
   const [customBpm, setCustomBpm] = useState(song.bpm);
-  const speed = customBpm / song.bpm; // derived — drives playNoteEvents + rAF timing
+  const speed = customBpm / song.bpm;
   const [loop, setLoop] = useState(false);
   const [metronomeOn, setMetronomeOn] = useState(false);
   const [tapTimes, setTapTimes] = useState<number[]>([]);
@@ -86,6 +86,11 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
   const [ghScore, setGhScore] = useState({ perfect: 0, good: 0, miss: 0, combo: 0, maxCombo: 0 });
   const [ghFinished, setGhFinished] = useState(false);
 
+  // Section loop state
+  const [loopSection, setLoopSection] = useState<{ start: number; end: number } | null>(null);
+  const [sectionStartMeasure, setSectionStartMeasure] = useState(1);
+  const [sectionEndMeasure, setSectionEndMeasure] = useState(4);
+
   const pianoKeys = useSettings((s) => s.pianoKeys);
   const groups = useMemo(() => groupByBeat(song.notes, hand), [song, hand]);
   const handNotes = useMemo(
@@ -95,7 +100,34 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
   const reqRange = useMemo(() => songRange(song), [song]);
   const range = useMemo(() => displayRange(reqRange.start, reqRange.end, pianoKeys), [reqRange, pianoKeys]);
 
-  const [state, dispatch] = useReducer(reducerP, groups, initP);
+  // Total beats of the whole song (for measure count computation)
+  const totalBeatsAll = useMemo(() => {
+    const last = groups[groups.length - 1];
+    return last ? last.beat + (last.durations[0] ?? 1) : 0;
+  }, [groups]);
+
+  const measureCount = Math.max(1, Math.ceil(totalBeatsAll / song.beatsPerMeasure));
+
+  // Groups and notes filtered/offset to the active section
+  const sectionGroups = useMemo(() => {
+    if (!loopSection) return groups;
+    return groups.filter((g) => g.beat >= loopSection.start && g.beat < loopSection.end);
+  }, [groups, loopSection]);
+
+  const sectionNotes = useMemo(() => {
+    if (!loopSection) return handNotes;
+    const offset = loopSection.start;
+    return handNotes
+      .filter((n) => n.startBeat >= loopSection.start && n.startBeat < loopSection.end)
+      .map((n) => ({ ...n, startBeat: n.startBeat - offset }));
+  }, [handNotes, loopSection]);
+
+  // Keep refs up to date so closures inside startListen always have fresh values
+  const sectionGroupsRef = useRef(sectionGroups);
+  sectionGroupsRef.current = sectionGroups;
+  const startListenRef = useRef<() => void>(() => {});
+
+  const [state, dispatch] = useReducer(reducerP, sectionGroups, initP);
 
   function resetGhState() {
     ghJudgmentsRef.current = new Map();
@@ -115,7 +147,7 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
 
   function handleRestart() {
     stopListen();
-    dispatch({ type: 'reset', groups });
+    dispatch({ type: 'reset', groups: sectionGroupsRef.current });
     resetGhState();
     setPlayheadBeat(0);
     playheadBeatRef.current = 0;
@@ -127,21 +159,29 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
     setPlayheadBeat(0);
     playheadBeatRef.current = 0;
     if (gameMode === 'guitar-hero') resetGhState();
-    const cancelAudio = playNoteEvents(handNotes, song.bpm, speed);
+
+    const activeGroups = sectionGroupsRef.current;
+    const sectionStart = loopSection?.start ?? 0;
+    const cancelAudio = playNoteEvents(sectionNotes, song.bpm, speed);
     if (metronomeOn) startMetronome(customBpm, song.beatsPerMeasure);
+
     const beatSec = 60 / customBpm;
-    const last = groups[groups.length - 1];
-    const totalBeats = last ? last.beat + (last.durations[0] ?? 1) : 0;
+    const lastGroup = activeGroups[activeGroups.length - 1];
+    const relativeTotalBeats = loopSection
+      ? loopSection.end - loopSection.start
+      : (lastGroup ? lastGroup.beat + (lastGroup.durations[0] ?? 1) : 0);
+
     const startTime = performance.now();
     const tick = () => {
-      const beats = (performance.now() - startTime) / 1000 / beatSec;
-      setPlayheadBeat(beats);
-      playheadBeatRef.current = beats;
+      const relBeats = (performance.now() - startTime) / 1000 / beatSec;
+      const absBeat = sectionStart + relBeats;
+      setPlayheadBeat(absBeat);
+      playheadBeatRef.current = absBeat;
 
       // GH mode: detect misses (groups past the hit window)
       if (gameMode === 'guitar-hero') {
-        groups.forEach((g, i) => {
-          if (!ghJudgmentsRef.current.has(i) && beats > g.beat + GH_GOOD) {
+        activeGroups.forEach((g, i) => {
+          if (!ghJudgmentsRef.current.has(i) && absBeat > g.beat + GH_GOOD) {
             ghJudgmentsRef.current.set(i, 'miss');
             ghScoreRef.current.miss++;
             ghScoreRef.current.combo = 0;
@@ -151,10 +191,16 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
         });
       }
 
-      if (beats > totalBeats + 2) {
+      if (relBeats > relativeTotalBeats + 2) {
+        if (loop) {
+          // Section / full-song loop in listen mode
+          stopListen();
+          setTimeout(() => startListenRef.current(), 400);
+          return;
+        }
         if (gameMode === 'guitar-hero') {
           // Mark remaining unjudged as miss
-          groups.forEach((_g, i) => {
+          activeGroups.forEach((_g, i) => {
             if (!ghJudgmentsRef.current.has(i)) {
               ghJudgmentsRef.current.set(i, 'miss');
               ghScoreRef.current.miss++;
@@ -173,13 +219,16 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
     listenCancel.current = () => cancelAudio();
   }
 
+  // Keep startListenRef current after each render so the loop restart always calls latest version
+  startListenRef.current = startListen;
+
   function handleGhInput(midi: number) {
-    const ph = playheadBeatRef.current;
+    const ph = playheadBeatRef.current; // absolute beat
     let bestIdx = -1;
     let bestDiff = Infinity;
-    groups.forEach((g, i) => {
+    sectionGroups.forEach((g, i) => {
       if (ghJudgmentsRef.current.has(i)) return;
-      const diff = Math.abs(g.beat - ph);
+      const diff = Math.abs(g.beat - ph); // both absolute
       if (diff <= GH_GOOD && diff < bestDiff && g.midis.some((m) => notesMatch(midi, m, false))) {
         bestDiff = diff;
         bestIdx = i;
@@ -201,10 +250,10 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
       handleGhInput(midi);
       return;
     }
-    // Wait mode
+    // Wait mode — auto-restart on any wrong note
     if (autoRestart && !listening) {
-      const g = groups[state.index];
-      if (g && state.played.length === 0) {
+      const g = state.groups[state.index];
+      if (g) {
         const isCorrect = g.midis.some((m) => notesMatch(midi, m, false));
         if (!isCorrect) {
           handleRestart();
@@ -215,19 +264,20 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
     dispatch({ type: 'input', midi, fromMic: false });
   }
 
+  // Reset reducer when section or hand changes
   useEffect(() => {
-    dispatch({ type: 'reset', groups });
+    dispatch({ type: 'reset', groups: sectionGroups });
     resetGhState();
     stopListen();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groups]);
+  }, [sectionGroups]);
 
   useMicNote((midi) => {
-    if (listening) return; // during listen, mic doesn't feed practice
-    if (gameMode === 'guitar-hero') return; // GH mode: mic not used for scoring
+    if (listening) return;
+    if (gameMode === 'guitar-hero') return;
     if (autoRestart) {
-      const g = groups[state.index];
-      if (g && state.played.length === 0) {
+      const g = state.groups[state.index];
+      if (g) {
         const isCorrect = g.midis.some((m) => notesMatch(midi, m, true));
         if (!isCorrect) { handleRestart(); return; }
       }
@@ -235,11 +285,15 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
     dispatch({ type: 'input', midi, fromMic: true });
   });
 
+  // Wait-mode loop: restart when section is finished
   useEffect(() => {
     if (!state.finished) return;
     recordSong(song.id);
     if (loop) {
-      const id = window.setTimeout(() => dispatch({ type: 'reset', groups }), 900);
+      const id = window.setTimeout(
+        () => dispatch({ type: 'reset', groups: sectionGroupsRef.current }),
+        900,
+      );
       return () => clearTimeout(id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -247,12 +301,16 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
 
   useEffect(() => () => stopListen(), []);
 
-  // Reset tempo + metronome when song changes
+  // Reset tempo, metronome and section when song changes
   useEffect(() => {
     setCustomBpm(song.bpm);
     setMetronomeOn(false);
     setTapTimes([]);
-  }, [song.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    setLoopSection(null);
+    setSectionStartMeasure(1);
+    setSectionEndMeasure(Math.min(4, Math.max(1, measureCount)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [song.id]);
 
   // Metronome: independent of playback transport (uses Tone.Clock)
   useEffect(() => {
@@ -289,11 +347,17 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
     });
   }
 
-  const currentIndex = state.finished ? groups.length : state.index;
+  function applySection() {
+    const start = (sectionStartMeasure - 1) * song.beatsPerMeasure;
+    const end = sectionEndMeasure * song.beatsPerMeasure;
+    setLoopSection({ start, end });
+  }
+
+  const currentIndex = state.finished ? sectionGroups.length : state.index;
 
   const decorations: KeyDecorations = {};
   if (!listening && !state.finished) {
-    const cur = groups[state.index];
+    const cur = sectionGroups[state.index];
     cur?.midis.forEach((m, i) => {
       decorations[m] = {
         highlight: state.played.includes(m) ? 'correct' : 'target',
@@ -329,7 +393,7 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
       <div className="card flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           {!listening ? (
-            <button className="btn-primary" onClick={startListen} disabled={groups.length === 0}>
+            <button className="btn-primary" onClick={startListen} disabled={sectionGroups.length === 0}>
               ▶ {t('common.listen')}
             </button>
           ) : (
@@ -431,6 +495,67 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
               {Math.round(song.bpm * 1.2)} BPM
             </span>
           </div>
+
+          {/* Section loop selector */}
+          <div className="flex w-full flex-wrap items-center gap-2 border-t border-slate-700/50 pt-2">
+            <span className="shrink-0 text-xs text-slate-400">🔁 {t('repertoire.loopSection')}:</span>
+            {loopSection ? (
+              <>
+                <span className="rounded bg-brand-500/20 px-2 py-0.5 text-xs font-medium text-brand-300">
+                  {t('repertoire.measure')} {Math.floor(loopSection.start / song.beatsPerMeasure) + 1}
+                  {' – '}
+                  {Math.floor(loopSection.end / song.beatsPerMeasure)}
+                </span>
+                <button
+                  className="text-xs text-slate-500 hover:text-red-400"
+                  onClick={() => setLoopSection(null)}
+                  title={t('repertoire.clearSection')}
+                >
+                  ✕ {t('repertoire.clearSection')}
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="text-xs text-slate-500">{t('repertoire.sectionAll')}</span>
+                <label className="flex items-center gap-1 text-xs text-slate-400">
+                  {t('repertoire.sectionFrom')}
+                  <input
+                    type="number"
+                    min={1}
+                    max={measureCount - 1}
+                    value={sectionStartMeasure}
+                    onChange={(e) => {
+                      const v = Math.max(1, Math.min(measureCount - 1, Number(e.target.value)));
+                      setSectionStartMeasure(v);
+                      if (sectionEndMeasure <= v) setSectionEndMeasure(v + 1);
+                    }}
+                    className="w-14 rounded border border-slate-700 bg-transparent px-1 py-0.5 text-center"
+                  />
+                </label>
+                <label className="flex items-center gap-1 text-xs text-slate-400">
+                  {t('repertoire.sectionTo')}
+                  <input
+                    type="number"
+                    min={sectionStartMeasure + 1}
+                    max={measureCount}
+                    value={sectionEndMeasure}
+                    onChange={(e) => {
+                      const v = Math.max(sectionStartMeasure + 1, Math.min(measureCount, Number(e.target.value)));
+                      setSectionEndMeasure(v);
+                    }}
+                    className="w-14 rounded border border-slate-700 bg-transparent px-1 py-0.5 text-center"
+                  />
+                </label>
+                <button
+                  className="btn-ghost py-0.5 px-2 text-xs"
+                  disabled={sectionStartMeasure >= sectionEndMeasure || measureCount < 2}
+                  onClick={applySection}
+                >
+                  {t('repertoire.sectionActivate')}
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         <p className="text-xs text-slate-500">
@@ -452,7 +577,7 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
             <span className="text-wrong">✕ {ghScore.miss} {t('repertoire.ghMiss')}</span>
           </div>
           <div className="text-2xl font-black tabular-nums">
-            {Math.round((ghScore.perfect * 100 + ghScore.good * 50) / Math.max(1, groups.length))}%
+            {Math.round((ghScore.perfect * 100 + ghScore.good * 50) / Math.max(1, sectionGroups.length))}%
           </div>
           <p className="text-sm text-slate-500">{t('repertoire.ghMaxCombo')}: {ghScore.maxCombo}x</p>
           <div className="flex gap-2">
@@ -470,7 +595,7 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
         start={range.start}
         end={range.end}
         decorations={gameMode === 'wait' ? decorations : {}}
-        groups={groups}
+        groups={sectionGroups}
         currentIndex={currentIndex}
         playheadBeat={listening ? playheadBeat : undefined}
         judgments={gameMode === 'guitar-hero' ? ghJudgments : undefined}

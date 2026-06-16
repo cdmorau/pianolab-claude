@@ -106,7 +106,7 @@
     "imported": "Importadas por ti",
     "waitMode": "Modo espera",
     "waitModeDesc": "Espera a que toques la nota correcta para avanzar.",
-    "loop": "Repetir sección",
+    "loop": "Repetir",
     "speed": "Velocidad",
     "metronome": "Metrónomo",
     "tapTempo": "Tap tempo",
@@ -123,7 +123,14 @@
     "ghGood": "buenas",
     "ghMiss": "falladas",
     "ghMaxCombo": "Combo máximo",
-    "ghExitMode": "Salir del modo"
+    "ghExitMode": "Salir del modo",
+    "loopSection": "Sección en bucle",
+    "measure": "Compás",
+    "sectionAll": "Canción completa",
+    "sectionFrom": "Del compás",
+    "sectionTo": "al",
+    "sectionActivate": "Activar",
+    "clearSection": "Limpiar"
   },
   "progress": {
     "title": "Tu progreso",

@@ -106,7 +106,7 @@
     "imported": "Imported by you",
     "waitMode": "Wait mode",
     "waitModeDesc": "Waits for you to play the correct note before moving on.",
-    "loop": "Loop section",
+    "loop": "Repeat",
     "speed": "Speed",
     "metronome": "Metronome",
     "tapTempo": "Tap tempo",
@@ -123,7 +123,14 @@
     "ghGood": "good",
     "ghMiss": "missed",
     "ghMaxCombo": "Max combo",
-    "ghExitMode": "Exit mode"
+    "ghExitMode": "Exit mode",
+    "loopSection": "Loop section",
+    "measure": "Bar",
+    "sectionAll": "Whole song",
+    "sectionFrom": "From bar",
+    "sectionTo": "to",
+    "sectionActivate": "Activate",
+    "clearSection": "Clear"
   },
   "progress": {
     "title": "Your progress",
