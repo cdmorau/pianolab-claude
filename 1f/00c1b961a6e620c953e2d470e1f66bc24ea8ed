@@ -1,0 +1,33 @@
+src/features/miditools/midiWriter.ts
+  s_7b8b3ad99dc88e::t_38d9e2eaf1adb7 1-64
+src/i18n/locales/es.json
+  s_7b8b3ad99dc88e::t_e7f5b9d6aefee6 181-196,198
+package.json
+  s_7b8b3ad99dc88e::t_b0f59aecec1eab 18-19
+src/features/miditools/MidiToolsPage.tsx
+  s_7b8b3ad99dc88e::t_a54ed034e992da 1,3-4,8-9,13,15-22,25-26,31-36,39-41,43-45,48-75,80,85-119,121-125,128-129,131-132,134-135,138-140,142-148,151-153,155-156,158-174,176-187,189,192-199,201-204,206-217,220-235,237-239,242-244
+src/features/miditools/audioTranscriber.ts
+  s_7b8b3ad99dc88e::t_32dfdfb19b627c 1-69
+src/i18n/locales/en.json
+  s_7b8b3ad99dc88e::t_be007ddeb41d29 181-196,198
+src/features/miditools/synthesiaDetector.ts
+  s_7b8b3ad99dc88e::t_2e436f7fd10cdb 1-109
+src/features/miditools/basic-pitch.d.ts
+  s_7b8b3ad99dc88e::t_136c3f914bc1da 1-25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "1f00c1b961a6e620c953e2d470e1f66bc24ea8ed",
+  "prompts": {},
+  "sessions": {
+    "s_7b8b3ad99dc88e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f29df47-25c3-4d8a-a655-5abf8b4aab11",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Cristhian David Mora Uribe <63613016+cdmorau@users.noreply.github.com>"
+    }
+  }
+}
