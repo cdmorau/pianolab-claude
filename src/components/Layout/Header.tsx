@@ -8,6 +8,7 @@ const NAV: { view: View; key: string; icon: string }[] = [
   { view: 'theory', key: 'nav.theory', icon: '📖' },
   { view: 'challenges', key: 'nav.challenges', icon: '🎯' },
   { view: 'repertoire', key: 'nav.repertoire', icon: '🎼' },
+  { view: 'miditools', key: 'nav.miditools', icon: '🎥' },
   { view: 'progress', key: 'nav.progress', icon: '📈' },
 ];
 

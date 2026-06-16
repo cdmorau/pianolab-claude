@@ -4,6 +4,7 @@ import { HomePage } from '@/features/home/HomePage';
 import { TheoryPage } from '@/features/theory/TheoryPage';
 import { ChallengesPage } from '@/features/challenges/ChallengesPage';
 import { RepertoirePage } from '@/features/repertoire/RepertoirePage';
+import { MidiToolsPage } from '@/features/miditools/MidiToolsPage';
 import { ProgressPage } from '@/features/progress/ProgressPage';
 import { useUi } from '@/state/uiStore';
 
@@ -19,6 +20,7 @@ export default function App() {
         {view === 'theory' && <TheoryPage />}
         {view === 'challenges' && <ChallengesPage />}
         {view === 'repertoire' && <RepertoirePage />}
+        {view === 'miditools' && <MidiToolsPage />}
         {view === 'progress' && <ProgressPage />}
       </main>
       <footer className="mx-auto max-w-6xl px-4 py-8 text-center text-xs text-slate-400">

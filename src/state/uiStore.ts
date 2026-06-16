@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type View = 'home' | 'theory' | 'challenges' | 'repertoire' | 'progress';
+export type View = 'home' | 'theory' | 'challenges' | 'repertoire' | 'progress' | 'miditools';
 
 interface UiState {
   view: View;
