@@ -15,6 +15,8 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@spotify/basic-pitch": "^0.1.5",
+    "@tensorflow/tfjs": "^4.22.0",
     "i18next": "^24.2.1",
     "pitchy": "^4.1.0",
     "react": "^19.0.0",
