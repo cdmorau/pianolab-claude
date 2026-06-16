@@ -10,6 +10,38 @@ function fmtSec(s: number) {
   return m > 0 ? `${m}m${sec}s` : `${sec}s`;
 }
 
+/**
+ * Merges consecutive same-pitch notes whose gap is below the threshold.
+ * Converts repeated re-triggers from the sustain pedal into a single held note.
+ */
+function mergeNotes(notes: MidiNote[], maxGapSec = 0.12): MidiNote[] {
+  const byPitch = new Map<number, MidiNote[]>();
+  for (const note of notes) {
+    const bucket = byPitch.get(note.pitch);
+    if (bucket) bucket.push(note);
+    else byPitch.set(note.pitch, [note]);
+  }
+
+  const merged: MidiNote[] = [];
+  for (const pitchNotes of byPitch.values()) {
+    pitchNotes.sort((a, b) => a.startSec - b.startSec);
+    let cur = { ...pitchNotes[0] };
+    for (let i = 1; i < pitchNotes.length; i++) {
+      const next = pitchNotes[i];
+      if (next.startSec - cur.endSec <= maxGapSec) {
+        cur.endSec = Math.max(cur.endSec, next.endSec);
+        cur.velocity = Math.max(cur.velocity, next.velocity);
+      } else {
+        merged.push(cur);
+        cur = { ...next };
+      }
+    }
+    merged.push(cur);
+  }
+
+  return merged.sort((a, b) => a.startSec - b.startSec);
+}
+
 /** Decode audio file and resample to 22050 Hz mono (required by Basic Pitch). */
 async function prepareBuffer(file: File): Promise<AudioBuffer> {
   const arrayBuf = await file.arrayBuffer();
@@ -72,15 +104,21 @@ export async function transcribeAudio(
 
   onProgress('Generando MIDI…', 92);
 
-  const raw = outputToNotesPoly(frames, onsets, 0.25, 0.25, 5);
+  // onsetThreshold=0.5 requires more confidence before marking a new attack,
+  // which suppresses false re-triggers on notes held with the sustain pedal.
+  // minNoteLength=8 (~93 ms) filters out very short spurious events.
+  const raw = outputToNotesPoly(frames, onsets, 0.5, 0.25, 8);
   const timed = noteFramesToTime(raw);
 
-  const notes: MidiNote[] = timed.map((n) => ({
+  const mapped: MidiNote[] = timed.map((n) => ({
     pitch: Math.max(0, Math.min(127, Math.round(n.pitchMidi))),
     startSec: n.startTimeSeconds,
     endSec: Math.max(n.startTimeSeconds + 0.05, n.startTimeSeconds + n.durationSeconds),
     velocity: Math.max(1, Math.min(127, Math.round(n.amplitude * 100))),
   }));
+
+  // Bridge micro-gaps (< 120 ms) between same-pitch notes caused by pedal sustain.
+  const notes = mergeNotes(mapped);
 
   onProgress('Listo', 100);
   return { midi: buildMidi(notes), noteCount: notes.length };
