@@ -1,0 +1,32 @@
+src/state/uiStore.ts
+  s_7b8b3ad99dc88e::t_b161496337d222 3
+src/features/miditools/MidiToolsPage.tsx
+  s_7b8b3ad99dc88e::t_53b048a2bef50a 1-699
+src/components/Layout/Header.tsx
+  s_7b8b3ad99dc88e::t_c693da20161852 11
+src/i18n/locales/es.json
+  s_7b8b3ad99dc88e::t_0597bba64e07dd 180-210
+  s_7b8b3ad99dc88e::t_a96d353201c509 45
+src/App.tsx
+  s_7b8b3ad99dc88e::t_a8b398476473af 23
+  s_7b8b3ad99dc88e::t_a30b7475487f6c 7
+src/i18n/locales/en.json
+  s_7b8b3ad99dc88e::t_5a42629a8e400f 180-210
+  s_7b8b3ad99dc88e::t_0aeafcb1e44010 45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "e67d62fe8b8df4b65950ed931e636a4e6265991a",
+  "prompts": {},
+  "sessions": {
+    "s_7b8b3ad99dc88e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f29df47-25c3-4d8a-a655-5abf8b4aab11",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Cristhian David Mora Uribe <63613016+cdmorau@users.noreply.github.com>"
+    }
+  }
+}
