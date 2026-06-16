@@ -15,6 +15,10 @@ export interface PracticeStageProps {
   playheadBeat?: number;
   forceShowFingers?: boolean;
   fallingHeight?: number;
+  /** GH mode: group-index → judgment */
+  judgments?: Map<number, 'perfect' | 'good' | 'miss'>;
+  /** GH mode: score overlay */
+  ghScore?: { perfect: number; good: number; miss: number; combo: number };
 }
 
 /**
@@ -32,6 +36,8 @@ export function PracticeStage({
   playheadBeat,
   forceShowFingers,
   fallingHeight = 300,
+  judgments,
+  ghScore,
 }: PracticeStageProps) {
   return (
     <div className="full-bleed px-4">
@@ -45,6 +51,8 @@ export function PracticeStage({
             endMidi={end}
             height={fallingHeight}
             showFingers={forceShowFingers}
+            judgments={judgments}
+            ghScore={ghScore}
           />
         )}
         <PianoKeyboard

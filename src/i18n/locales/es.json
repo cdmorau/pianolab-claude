@@ -114,7 +114,16 @@
     "originalBpm": "Original: {{bpm}}",
     "personalUse": "Arreglo simplificado · uso personal/educativo",
     "publicDomain": "Dominio público",
-    "noImported": "Aún no has importado canciones."
+    "noImported": "Aún no has importado canciones.",
+    "modeWait": "Espera",
+    "modeGH": "Guitar Hero",
+    "autoRestart": "Reinicio automático",
+    "ghFinished": "¡Canción terminada!",
+    "ghPerfect": "perfectas",
+    "ghGood": "buenas",
+    "ghMiss": "falladas",
+    "ghMaxCombo": "Combo máximo",
+    "ghExitMode": "Salir del modo"
   },
   "progress": {
     "title": "Tu progreso",

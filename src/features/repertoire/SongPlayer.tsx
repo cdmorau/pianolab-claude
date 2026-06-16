@@ -9,12 +9,16 @@ import { useMicNote } from '@/components/MicMeter/useMic';
 import { playNoteEvents } from '@/audio/engine';
 import { startMetronome, stopMetronome } from '@/audio/metronome';
 import { notesMatch } from '@/audio/notes';
+import { useMidiGesture } from '@/audio/useMidiGesture';
 import { groupByBeat, type PlayGroup } from '@/utils/groups';
 import { songRange } from '@/data/songs';
 import { useProgress } from '@/state/progressStore';
 import { useSettings } from '@/state/settingsStore';
 import type { Song } from '@/types/song';
 import type { Finger, HandChoice } from '@/types/music';
+
+const GH_PERFECT = 0.15; // beats
+const GH_GOOD = 0.35; // beats
 
 interface PState {
   groups: PlayGroup[];
@@ -72,6 +76,16 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
   const listenCancel = useRef<(() => void) | null>(null);
   const listenRaf = useRef<number | null>(null);
 
+  // GH mode state
+  const [gameMode, setGameMode] = useState<'wait' | 'guitar-hero'>('wait');
+  const [autoRestart, setAutoRestart] = useState(false);
+  const playheadBeatRef = useRef(0);
+  const ghJudgmentsRef = useRef(new Map<number, 'perfect' | 'good' | 'miss'>());
+  const [ghJudgments, setGhJudgments] = useState(new Map<number, 'perfect' | 'good' | 'miss'>());
+  const ghScoreRef = useRef({ perfect: 0, good: 0, miss: 0, combo: 0, maxCombo: 0 });
+  const [ghScore, setGhScore] = useState({ perfect: 0, good: 0, miss: 0, combo: 0, maxCombo: 0 });
+  const [ghFinished, setGhFinished] = useState(false);
+
   const pianoKeys = useSettings((s) => s.pianoKeys);
   const groups = useMemo(() => groupByBeat(song.notes, hand), [song, hand]);
   const handNotes = useMemo(
@@ -83,14 +97,142 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
 
   const [state, dispatch] = useReducer(reducerP, groups, initP);
 
+  function resetGhState() {
+    ghJudgmentsRef.current = new Map();
+    setGhJudgments(new Map());
+    ghScoreRef.current = { perfect: 0, good: 0, miss: 0, combo: 0, maxCombo: 0 };
+    setGhScore({ perfect: 0, good: 0, miss: 0, combo: 0, maxCombo: 0 });
+    setGhFinished(false);
+  }
+
+  function stopListen() {
+    listenCancel.current?.();
+    listenCancel.current = null;
+    if (listenRaf.current !== null) cancelAnimationFrame(listenRaf.current);
+    listenRaf.current = null;
+    setListening(false);
+  }
+
+  function handleRestart() {
+    stopListen();
+    dispatch({ type: 'reset', groups });
+    resetGhState();
+    setPlayheadBeat(0);
+    playheadBeatRef.current = 0;
+  }
+
+  function startListen() {
+    stopListen();
+    setListening(true);
+    setPlayheadBeat(0);
+    playheadBeatRef.current = 0;
+    if (gameMode === 'guitar-hero') resetGhState();
+    const cancelAudio = playNoteEvents(handNotes, song.bpm, speed);
+    if (metronomeOn) startMetronome(customBpm, song.beatsPerMeasure);
+    const beatSec = 60 / customBpm;
+    const last = groups[groups.length - 1];
+    const totalBeats = last ? last.beat + (last.durations[0] ?? 1) : 0;
+    const startTime = performance.now();
+    const tick = () => {
+      const beats = (performance.now() - startTime) / 1000 / beatSec;
+      setPlayheadBeat(beats);
+      playheadBeatRef.current = beats;
+
+      // GH mode: detect misses (groups past the hit window)
+      if (gameMode === 'guitar-hero') {
+        groups.forEach((g, i) => {
+          if (!ghJudgmentsRef.current.has(i) && beats > g.beat + GH_GOOD) {
+            ghJudgmentsRef.current.set(i, 'miss');
+            ghScoreRef.current.miss++;
+            ghScoreRef.current.combo = 0;
+            setGhJudgments(new Map(ghJudgmentsRef.current));
+            setGhScore({ ...ghScoreRef.current });
+          }
+        });
+      }
+
+      if (beats > totalBeats + 2) {
+        if (gameMode === 'guitar-hero') {
+          // Mark remaining unjudged as miss
+          groups.forEach((_g, i) => {
+            if (!ghJudgmentsRef.current.has(i)) {
+              ghJudgmentsRef.current.set(i, 'miss');
+              ghScoreRef.current.miss++;
+            }
+          });
+          setGhJudgments(new Map(ghJudgmentsRef.current));
+          setGhScore({ ...ghScoreRef.current });
+          setGhFinished(true);
+        }
+        stopListen();
+        return;
+      }
+      listenRaf.current = requestAnimationFrame(tick);
+    };
+    listenRaf.current = requestAnimationFrame(tick);
+    listenCancel.current = () => cancelAudio();
+  }
+
+  function handleGhInput(midi: number) {
+    const ph = playheadBeatRef.current;
+    let bestIdx = -1;
+    let bestDiff = Infinity;
+    groups.forEach((g, i) => {
+      if (ghJudgmentsRef.current.has(i)) return;
+      const diff = Math.abs(g.beat - ph);
+      if (diff <= GH_GOOD && diff < bestDiff && g.midis.some((m) => notesMatch(midi, m, false))) {
+        bestDiff = diff;
+        bestIdx = i;
+      }
+    });
+    if (bestIdx < 0) return;
+    const rating = bestDiff <= GH_PERFECT ? 'perfect' : 'good';
+    ghJudgmentsRef.current.set(bestIdx, rating);
+    const s = ghScoreRef.current;
+    s[rating]++;
+    s.combo++;
+    s.maxCombo = Math.max(s.maxCombo, s.combo);
+    setGhJudgments(new Map(ghJudgmentsRef.current));
+    setGhScore({ ...s });
+  }
+
+  function handleKeyDown(midi: number) {
+    if (gameMode === 'guitar-hero') {
+      handleGhInput(midi);
+      return;
+    }
+    // Wait mode
+    if (autoRestart && !listening) {
+      const g = groups[state.index];
+      if (g && state.played.length === 0) {
+        const isCorrect = g.midis.some((m) => notesMatch(midi, m, false));
+        if (!isCorrect) {
+          handleRestart();
+          return;
+        }
+      }
+    }
+    dispatch({ type: 'input', midi, fromMic: false });
+  }
+
   useEffect(() => {
     dispatch({ type: 'reset', groups });
+    resetGhState();
     stopListen();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groups]);
 
   useMicNote((midi) => {
-    if (!listening) dispatch({ type: 'input', midi, fromMic: true });
+    if (listening) return; // during listen, mic doesn't feed practice
+    if (gameMode === 'guitar-hero') return; // GH mode: mic not used for scoring
+    if (autoRestart) {
+      const g = groups[state.index];
+      if (g && state.played.length === 0) {
+        const isCorrect = g.midis.some((m) => notesMatch(midi, m, true));
+        if (!isCorrect) { handleRestart(); return; }
+      }
+    }
+    dispatch({ type: 'input', midi, fromMic: true });
   });
 
   useEffect(() => {
@@ -119,6 +261,19 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
     return stopMetronome;
   }, [metronomeOn, customBpm, song.beatsPerMeasure]);
 
+  // Auto-start in GH mode
+  useEffect(() => {
+    if (gameMode === 'guitar-hero' && !listening) {
+      startListen();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameMode]);
+
+  // MIDI gesture: triple-tap lowest key to restart
+  useMidiGesture([
+    { note: range.start, taps: 3, windowMs: 1500, action: handleRestart },
+  ]);
+
   function handleTap() {
     const now = performance.now();
     setTapTimes((prev) => {
@@ -132,37 +287,6 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
       }
       return next;
     });
-  }
-
-  function stopListen() {
-    listenCancel.current?.();
-    listenCancel.current = null;
-    if (listenRaf.current !== null) cancelAnimationFrame(listenRaf.current);
-    listenRaf.current = null;
-    setListening(false);
-  }
-
-  function startListen() {
-    stopListen();
-    setListening(true);
-    setPlayheadBeat(0);
-    const cancelAudio = playNoteEvents(handNotes, song.bpm, speed);
-    if (metronomeOn) startMetronome(customBpm, song.beatsPerMeasure);
-    const beatSec = 60 / customBpm;
-    const last = groups[groups.length - 1];
-    const totalBeats = last ? last.beat + (last.durations[0] ?? 1) : 0;
-    const startTime = performance.now();
-    const tick = () => {
-      const beats = (performance.now() - startTime) / 1000 / beatSec;
-      setPlayheadBeat(beats);
-      if (beats > totalBeats + 2) {
-        stopListen();
-        return;
-      }
-      listenRaf.current = requestAnimationFrame(tick);
-    };
-    listenRaf.current = requestAnimationFrame(tick);
-    listenCancel.current = () => cancelAudio();
   }
 
   const currentIndex = state.finished ? groups.length : state.index;
@@ -213,9 +337,25 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
               ⏹ {t('common.stop')}
             </button>
           )}
-          <button className="btn-ghost" onClick={() => dispatch({ type: 'reset', groups })}>
+          <button className="btn-ghost" onClick={handleRestart}>
             ↺ {t('common.reset')}
           </button>
+
+          {/* Game mode toggle */}
+          <div className="flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 p-0.5">
+            <button
+              className={`rounded px-2 py-0.5 text-xs font-medium transition-colors ${gameMode === 'wait' ? 'bg-brand-500 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+              onClick={() => { setGameMode('wait'); stopListen(); }}
+            >
+              ⏸ {t('repertoire.modeWait')}
+            </button>
+            <button
+              className={`rounded px-2 py-0.5 text-xs font-medium transition-colors ${gameMode === 'guitar-hero' ? 'bg-brand-500 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+              onClick={() => setGameMode('guitar-hero')}
+            >
+              🎮 {t('repertoire.modeGH')}
+            </button>
+          </div>
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
             <span className="text-xs text-slate-400 tabular-nums">
@@ -261,6 +401,13 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
             </select>
           </label>
 
+          {gameMode === 'wait' && (
+            <label className="flex items-center gap-1.5 text-xs">
+              <input type="checkbox" checked={autoRestart} onChange={(e) => setAutoRestart(e.target.checked)} />
+              {t('repertoire.autoRestart')}
+            </label>
+          )}
+
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={loop} onChange={(e) => setLoop(e.target.checked)} />
             {t('repertoire.loop')}
@@ -295,16 +442,42 @@ export function SongPlayer({ song, onExit }: { song: Song; onExit: () => void })
         <PianoControls compact />
       </div>
 
+      {gameMode === 'guitar-hero' && ghFinished && (
+        <div className="card flex flex-col items-center gap-3 text-center">
+          <div className="text-4xl">🎮</div>
+          <h2 className="text-xl font-extrabold">{t('repertoire.ghFinished')}</h2>
+          <div className="flex gap-4 text-sm">
+            <span className="text-correct">✦ {ghScore.perfect} {t('repertoire.ghPerfect')}</span>
+            <span className="text-almost">◈ {ghScore.good} {t('repertoire.ghGood')}</span>
+            <span className="text-wrong">✕ {ghScore.miss} {t('repertoire.ghMiss')}</span>
+          </div>
+          <div className="text-2xl font-black tabular-nums">
+            {Math.round((ghScore.perfect * 100 + ghScore.good * 50) / Math.max(1, groups.length))}%
+          </div>
+          <p className="text-sm text-slate-500">{t('repertoire.ghMaxCombo')}: {ghScore.maxCombo}x</p>
+          <div className="flex gap-2">
+            <button className="btn-primary" onClick={() => { resetGhState(); startListen(); }}>
+              ↺ {t('common.retry')}
+            </button>
+            <button className="btn-ghost" onClick={() => setGameMode('wait')}>
+              {t('repertoire.ghExitMode')}
+            </button>
+          </div>
+        </div>
+      )}
+
       <PracticeStage
         start={range.start}
         end={range.end}
-        decorations={decorations}
+        decorations={gameMode === 'wait' ? decorations : {}}
         groups={groups}
         currentIndex={currentIndex}
         playheadBeat={listening ? playheadBeat : undefined}
-        forceShowFingers
+        judgments={gameMode === 'guitar-hero' ? ghJudgments : undefined}
+        ghScore={gameMode === 'guitar-hero' ? ghScore : undefined}
+        forceShowFingers={gameMode === 'wait'}
         fallingHeight={300}
-        onKeyDown={(midi) => dispatch({ type: 'input', midi, fromMic: false })}
+        onKeyDown={handleKeyDown}
       />
 
       <MicMeter />

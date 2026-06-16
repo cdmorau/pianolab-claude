@@ -114,7 +114,16 @@
     "originalBpm": "Original: {{bpm}}",
     "personalUse": "Simplified arrangement · personal/educational use",
     "publicDomain": "Public domain",
-    "noImported": "You haven't imported any songs yet."
+    "noImported": "You haven't imported any songs yet.",
+    "modeWait": "Wait",
+    "modeGH": "Guitar Hero",
+    "autoRestart": "Auto-restart",
+    "ghFinished": "Song finished!",
+    "ghPerfect": "perfect",
+    "ghGood": "good",
+    "ghMiss": "missed",
+    "ghMaxCombo": "Max combo",
+    "ghExitMode": "Exit mode"
   },
   "progress": {
     "title": "Your progress",

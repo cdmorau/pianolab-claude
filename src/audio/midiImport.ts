@@ -1,4 +1,4 @@
-import { parseSmf } from './smfParser';
+import { parseSmf, ticksToBeats } from './smfParser';
 import type { NoteEvent, Song } from '@/types/song';
 
 /**
@@ -13,8 +13,12 @@ export async function songFromMidiFile(file: File): Promise<Song> {
 
   const notes: NoteEvent[] = midi.notes.map((n) => ({
     midi: n.midi,
-    startBeat: n.startTick / ppq,
-    durationBeats: Math.max(0.1, n.durationTicks / ppq),
+    startBeat: ticksToBeats(n.startTick, midi.tempoMap, ppq, midi.bpm),
+    durationBeats: Math.max(
+      0.1,
+      ticksToBeats(n.startTick + n.durationTicks, midi.tempoMap, ppq, midi.bpm) -
+        ticksToBeats(n.startTick, midi.tempoMap, ppq, midi.bpm),
+    ),
     // Heuristic: notes below middle C go to the left hand.
     hand: n.midi < 60 ? 'L' : 'R',
     velocity: n.velocity,

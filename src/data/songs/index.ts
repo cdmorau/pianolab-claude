@@ -3,15 +3,11 @@ import { twinkle } from './twinkle';
 import { odeToJoy } from './odeToJoy';
 import { furElise } from './furElise';
 import { chopinNocturne } from './chopinNocturne';
-import { interstellar } from './interstellar';
-import { herPhotograph } from './her';
 
 /** Bundled repertoire, ordered by difficulty. */
 export const SONGS: Song[] = [
   twinkle,
   odeToJoy,
-  herPhotograph,
-  interstellar,
   furElise,
   chopinNocturne,
 ];

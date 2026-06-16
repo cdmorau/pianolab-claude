@@ -15,6 +15,10 @@ export interface FallingNotesProps {
   showFingers?: boolean;
   height?: number;
   className?: string;
+  /** GH mode: group-index → judgment */
+  judgments?: Map<number, 'perfect' | 'good' | 'miss'>;
+  /** GH mode: score overlay */
+  ghScore?: { perfect: number; good: number; miss: number; combo: number };
 }
 
 const PX_PER_BEAT = 80; // vertical pixels per beat
@@ -38,6 +42,8 @@ export function FallingNotes({
   showFingers = true,
   height = 300,
   className,
+  judgments,
+  ghScore,
 }: FallingNotesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const playhead = useRef(0); // current beat at the hit line
@@ -46,8 +52,26 @@ export function FallingNotes({
   const comboPulse = useRef(0);
   const hitPulse = useRef(0);
   const effects = useRef<HitFx[]>([]);
-  const state = useRef({ groups, currentIndex, playheadBeat, startMidi, endMidi, showFingers });
-  state.current = { groups, currentIndex, playheadBeat, startMidi, endMidi, showFingers };
+  const state = useRef({
+    groups,
+    currentIndex,
+    playheadBeat,
+    startMidi,
+    endMidi,
+    showFingers,
+    judgments,
+    ghScore,
+  });
+  state.current = {
+    groups,
+    currentIndex,
+    playheadBeat,
+    startMidi,
+    endMidi,
+    showFingers,
+    judgments,
+    ghScore,
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -136,7 +160,7 @@ export function FallingNotes({
 
       // Falling note bars
       const ph = playhead.current;
-      s.groups.forEach((group) => {
+      s.groups.forEach((group, groupIndex) => {
         group.midis.forEach((midi, ni) => {
           const cx = layout.centerX(midi);
           if (cx === null) return;
@@ -153,17 +177,34 @@ export function FallingNotes({
           const passed = ph > endBeat;
           const rh = group.hands[ni] !== 'L';
           const palette = rh ? RH_COLOR : LH_COLOR;
+
+          // Determine color based on judgment (GH mode) or default logic
+          const judgment = s.judgments?.get(groupIndex);
           let fill = palette.future;
           let alpha = 1;
-          if (passed) alpha = 0.16;
-          else if (active) fill = '#22c55e';
+
+          if (judgment === 'perfect') {
+            fill = '#22c55e';
+          } else if (judgment === 'good') {
+            fill = '#eab308';
+          } else if (judgment === 'miss') {
+            fill = '#ef4444';
+            alpha = 0.4;
+          } else if (passed) {
+            alpha = 0.16;
+          } else if (active) {
+            fill = '#22c55e';
+          }
 
           ctx.save();
           ctx.globalAlpha = alpha;
-          if (active) {
+          if (judgment === 'perfect' || (!judgment && active)) {
             ctx.shadowColor = '#22c55e';
             ctx.shadowBlur = 16;
-          } else if (!passed) {
+          } else if (judgment === 'good') {
+            ctx.shadowColor = '#eab308';
+            ctx.shadowBlur = 10;
+          } else if (!judgment && !passed) {
             ctx.shadowColor = palette.glow;
             ctx.shadowBlur = 6;
           }
@@ -210,7 +251,7 @@ export function FallingNotes({
         ctx.restore();
       }
 
-      // Combo counter
+      // Combo counter (top-left)
       if (combo.current > 1) {
         const scale = 1 + comboPulse.current * 0.5;
         ctx.save();
@@ -223,6 +264,22 @@ export function FallingNotes({
         ctx.shadowColor = 'rgba(250,204,21,0.6)';
         ctx.shadowBlur = 8;
         ctx.fillText(`✦ ${combo.current}x`, 0, 0);
+        ctx.restore();
+      }
+
+      // GH score overlay (top-right)
+      if (s.ghScore) {
+        const sc = s.ghScore;
+        ctx.save();
+        ctx.font = '11px Inter, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillStyle = 'rgba(255,255,255,0.75)';
+        ctx.fillText(
+          `⬢ ${sc.perfect}P ${sc.good}G ${sc.miss}M`,
+          width - 8,
+          8,
+        );
         ctx.restore();
       }
 
