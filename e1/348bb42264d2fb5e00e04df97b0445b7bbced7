@@ -1,0 +1,25 @@
+src/i18n/locales/es.json
+  s_7b8b3ad99dc88e::t_cda180dc4e6553 109
+  s_7b8b3ad99dc88e::t_901034a19399b3 126-133
+src/i18n/locales/en.json
+  s_7b8b3ad99dc88e::t_a7cccc5b35411b 126-133
+  s_7b8b3ad99dc88e::t_6aa07960230ac3 109
+src/features/repertoire/SongPlayer.tsx
+  s_7b8b3ad99dc88e::t_e43752b4e52c03 70,89-93,103-130,150,162-165,167,169-173,176-179,183-184,194-200,203,222-224,226,229,231,253,255-256,267,269,273,276-277,279-280,288,293-296,304,309-313,350-356,360,396,498-558,580,598
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "e1348bb42264d2fb5e00e04df97b0445b7bbced7",
+  "prompts": {},
+  "sessions": {
+    "s_7b8b3ad99dc88e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f29df47-25c3-4d8a-a655-5abf8b4aab11",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Cristhian David Mora Uribe <63613016+cdmorau@users.noreply.github.com>"
+    }
+  }
+}
