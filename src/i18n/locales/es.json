@@ -195,7 +195,14 @@
     "download": "Descargar",
     "processAnother": "Procesar otro archivo",
     "disclaimerTitle": "Nota legal",
-    "disclaimerBody": "Úsalo solo con contenido para el que tengas los derechos o con fines personales/educativos."
+    "disclaimerBody": "Úsalo solo con contenido para el que tengas los derechos o con fines personales/educativos.",
+    "tabCompose": "Componer",
+    "composeRecord": "Grabar",
+    "composeStop": "Detener",
+    "composeClear": "Limpiar",
+    "composeNotes": "notas grabadas",
+    "composeEmpty": "Graba algo para ver la notación",
+    "composeRecording": "Grabando…"
   },
   "fingers": {
     "1": "Pulgar",

@@ -2,10 +2,11 @@ import { useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { transcribeAudio } from './audioTranscriber';
 import { detectSynthesia } from './synthesiaDetector';
+import { ComposeTab } from './ComposeTab';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type Tab = 'audio' | 'synthesia';
+type Tab = 'audio' | 'synthesia' | 'compose';
 type Status = 'idle' | 'processing' | 'done' | 'error';
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -137,7 +138,7 @@ export function MidiToolsPage() {
 
       {/* Tab switcher */}
       <div className="flex gap-1 rounded-xl border border-slate-800 bg-slate-900 p-1">
-        {(['audio', 'synthesia'] as const).map((k) => (
+        {(['audio', 'synthesia', 'compose'] as const).map((k) => (
           <button
             key={k}
             onClick={() => switchTab(k)}
@@ -150,13 +151,17 @@ export function MidiToolsPage() {
           >
             {k === 'audio'
               ? `🎼 ${t('miditools.tabAudio')}`
-              : `🎮 ${t('miditools.tabSynthesia')}`}
+              : k === 'synthesia'
+              ? `🎮 ${t('miditools.tabSynthesia')}`
+              : `🎹 ${t('miditools.tabCompose')}`}
           </button>
         ))}
       </div>
 
-      {/* Drop zone + hints */}
-      {tab === 'audio' ? (
+      {/* Tab content */}
+      {tab === 'compose' ? (
+        <ComposeTab />
+      ) : tab === 'audio' ? (
         <div className="flex flex-col gap-4">
           <DropZone
             accept="audio/*,.mp3,.wav,.flac,.m4a,.ogg,.aac"
@@ -190,7 +195,7 @@ export function MidiToolsPage() {
       )}
 
       {/* Progress bar */}
-      {status === 'processing' && (
+      {tab !== 'compose' && status === 'processing' && (
         <div className="card flex flex-col gap-3">
           <div className="h-3 w-full overflow-hidden rounded-full bg-slate-800">
             <div
@@ -204,7 +209,7 @@ export function MidiToolsPage() {
       )}
 
       {/* Error */}
-      {status === 'error' && (
+      {tab !== 'compose' && status === 'error' && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-5">
           <p className="font-bold text-red-400">{t('miditools.error')}</p>
           <p className="mt-1 break-all text-sm text-slate-400">{errorMsg}</p>
@@ -218,7 +223,7 @@ export function MidiToolsPage() {
       )}
 
       {/* Success */}
-      {status === 'done' && result && (
+      {tab !== 'compose' && status === 'done' && result && (
         <div className="card flex flex-col gap-4 border-green-500/30 bg-green-500/5">
           <div className="flex items-center gap-3">
             <span className="text-4xl">✅</span>

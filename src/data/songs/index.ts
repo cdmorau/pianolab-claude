@@ -3,6 +3,7 @@ import { twinkle } from './twinkle';
 import { odeToJoy } from './odeToJoy';
 import { furElise } from './furElise';
 import { chopinNocturne } from './chopinNocturne';
+import { interstellar } from './interstellar';
 
 /** Bundled repertoire, ordered by difficulty. */
 export const SONGS: Song[] = [
@@ -10,6 +11,7 @@ export const SONGS: Song[] = [
   odeToJoy,
   furElise,
   chopinNocturne,
+  interstellar,
 ];
 
 export function getSong(id: string): Song | undefined {

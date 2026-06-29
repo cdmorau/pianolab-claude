@@ -195,7 +195,14 @@
     "download": "Download",
     "processAnother": "Process another file",
     "disclaimerTitle": "Legal note",
-    "disclaimerBody": "Use only with content you have the rights to, or for personal/educational purposes."
+    "disclaimerBody": "Use only with content you have the rights to, or for personal/educational purposes.",
+    "tabCompose": "Compose",
+    "composeRecord": "Record",
+    "composeStop": "Stop",
+    "composeClear": "Clear",
+    "composeNotes": "notes recorded",
+    "composeEmpty": "Record something to see the notation",
+    "composeRecording": "Recording…"
   },
   "fingers": {
     "1": "Thumb",
